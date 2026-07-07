@@ -49,6 +49,53 @@ class UserLocalStorage {
         return this.setStorageValue({ notes: noteArr });
     }
 
+    static isEmptyNoteContent(content) {
+        return String(content || '').replace(/\s+/g, '') === '';
+    }
+
+    static isEmptyNote(note) {
+        return !note || this.isEmptyNoteContent(note.content);
+    }
+
+    static async removeNoteById(noteId) {
+        const notes = await this.retriveNoteData();
+        const updatedNotes = notes.filter((note) => note.id !== noteId);
+
+        if (updatedNotes.length !== notes.length) {
+            await this.setStorage(updatedNotes);
+        }
+
+        return notes.filter((note) => note.id === noteId);
+    }
+
+    static async removeEmptyNotesForUrl(url) {
+        const notes = await this.retriveNoteData();
+        const removedNotes = notes.filter((note) => note.url === url && this.isEmptyNote(note));
+
+        if (removedNotes.length === 0) {
+            return [];
+        }
+
+        const updatedNotes = notes.filter((note) => !(note.url === url && this.isEmptyNote(note)));
+        await this.setStorage(updatedNotes);
+
+        return removedNotes;
+    }
+
+    static async removeAllEmptyNotes() {
+        const notes = await this.retriveNoteData();
+        const removedNotes = notes.filter((note) => this.isEmptyNote(note));
+
+        if (removedNotes.length === 0) {
+            return [];
+        }
+
+        const updatedNotes = notes.filter((note) => !this.isEmptyNote(note));
+        await this.setStorage(updatedNotes);
+
+        return removedNotes;
+    }
+
     static setIsHidden(isHidden) {
         return this.setStorageValue({ isHidden: isHidden });
     }

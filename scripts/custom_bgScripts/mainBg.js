@@ -162,9 +162,18 @@ chrome.runtime.onMessage.addListener(
         if (request.action === 'updatePin') {
             const isPinEnable = request.isPinEnable
             const noteId = request.id
-            // remove note in case there is no content inside 
             const notesArray = await UserLocalStorage.retriveNoteData()
+            const noteToUpdate = notesArray.find(note => note.id === noteId);
 
+            if (!noteToUpdate) {
+                return true;
+            }
+
+            // Remove empty notes on close instead of keeping empty drafts.
+            if (UserLocalStorage.isEmptyNote(noteToUpdate)) {
+                await UserLocalStorage.removeNoteById(noteId);
+                return true;
+            }
 
             // Filter and update pinEnable
             const updatedNotesArray = notesArray.map(note => {
@@ -174,20 +183,7 @@ chrome.runtime.onMessage.addListener(
                 return note;
             });
 
-            const noteIndex = notesArray.findIndex(note => note.id === noteId);
-
-            if (noteIndex !== -1) {
-                // Check if the note's content is empty
-                if (notesArray[noteIndex].content.trim() === '') {
-                    // Remove the note from the array
-                    notesArray.splice(noteIndex, 1);
-
-                    await UserLocalStorage.setStorage(notesArray);
-
-                } else {
-                    await UserLocalStorage.setStorage(updatedNotesArray)
-                }
-            }
+            await UserLocalStorage.setStorage(updatedNotesArray)
         }
 
         if (request.action === 'enablePin') {

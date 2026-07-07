@@ -88,6 +88,8 @@ Additional fields are added later by user interactions:
 
 Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`. Its read and write helpers return Promises and reject when `chrome.runtime.lastError` is present.
 
+Empty note cleanup is centralized in `UserLocalStorage`. Whitespace-only notes are treated as empty and are removed on note close, tab close for the matching URL, and popup startup cleanup.
+
 ## Popup Flow
 
 The popup is implemented by `stickyNotes/stickyNotes.html`, `stickyNotes/stickyNotes.js`, and `stickyNotes/stickyNotes.css`. It uses the shared theme tokens from `styles/theme.css` through `styles/colorPalette.css`.
@@ -205,7 +207,7 @@ Supported interactions:
 - Edit note content with a debounced `input` handler that sends `updateNoteContent` to the background.
 - Stop keyboard and focus events from bubbling into the host webpage.
 
-Closing a note does not always delete it. The close button sends `updatePin` with `isPinEnable: false`. Background removes the note only if its content is empty; otherwise it saves the note with `enablePin: false`.
+Closing a note does not always delete it. The close button sends `updatePin` with `isPinEnable: false`. Background removes the note if its content is empty; otherwise it saves the note with `enablePin: false`.
 
 ## Background Flow
 
@@ -251,7 +253,7 @@ On extension install or update, it reloads all open tabs so the content scripts 
 
 ### `removeTabListner.js`
 
-This file tracks tab URLs in memory. When a tab closes, it removes stored notes for that exact tab URL if their content is empty.
+This file tracks tab URLs in memory. When a tab closes, it removes stored notes for that exact tab URL if their content is empty, using the shared empty-note cleanup helper.
 
 ## Full Notes Page Flow
 

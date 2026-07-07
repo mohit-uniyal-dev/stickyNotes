@@ -234,30 +234,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-    // retriveData 
-    (async function removeEmptyContent() {
+    (async function cleanupEmptyNotes() {
+        const removedNotes = await UserLocalStorage.removeAllEmptyNotes();
 
-        const noteArr = await UserLocalStorage.retriveNoteData()
-        const updatedNoteArr = noteArr.filter((note) => note.content.replace(/\s+/g, '') !== '')
-
-        // removiung the element from dom 
-        const removeElementArray = noteArr.filter((note) => note.content.replace(/\s+/g, '') === '')
-
-        // send message to bg 
-        // removeElementArray.forEach(note => {
-        //     const id = note.id
-        //     chrome.tabs.query({}, function (tabs) {
-        //         tabs.forEach(tab => {
-
-        //             chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: id });
-
-        //         });
-        //     });
-        // })
-
-        // await UserLocalStorage.setStorage(updatedNoteArr)
-
-
+        removedNotes.forEach(note => {
+            chrome.tabs.query({}, function (tabs) {
+                tabs.forEach(tab => {
+                    chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: note.id });
+                });
+            });
+        });
     })().then(async () => {
         try {
             await initActiveTabContext()

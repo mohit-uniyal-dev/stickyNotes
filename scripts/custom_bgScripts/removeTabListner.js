@@ -13,16 +13,21 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
     const closedTabUrl = tabUrls[tabId]; // Retrieve the stored URL for the closed tab
     delete tabUrls[tabId]; // Clean up the stored URL
 
-    const allNotes = await UserLocalStorage.retriveNoteData(); // Retrieve all notes from local storage
+    if (!closedTabUrl) {
+        return;
+    }
 
-    // Filter the notes: remove the one with the matching URL and empty content
-    const updatedNotes = allNotes.filter(note => {
-        // Keep the note if it does NOT match the closed tab URL or its content is not empty
-        return !(note.url === closedTabUrl && note.content.trim() === "");
-    });
+    const removedNotes = await UserLocalStorage.removeEmptyNotesForUrl(closedTabUrl);
 
-    // Update the local storage with the filtered notes array
-    await UserLocalStorage.setStorage(updatedNotes);
+    if (removedNotes.length > 0) {
+        chrome.tabs.query({}, function (tabs) {
+            tabs.forEach(tab => {
+                removedNotes.forEach(note => {
+                    chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: note.id });
+                });
+            });
+        });
+    }
 
 });
 

@@ -1,18 +1,39 @@
 
 
+// --- message payload validation helpers -------------------------------------
+// The background is the trust boundary for all storage mutations, so every
+// handler validates the fields it depends on before touching storage and
+// ignores anything malformed instead of writing bad data.
+const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+const isFiniteNumber = (value) => typeof value === 'number' && Number.isFinite(value);
+const isPlainObject = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
+const ALLOWED_NOTE_COLORS = new Set(['red', 'yellow', 'green', 'grey', 'purple', 'pink', 'default']);
+
+
 // one way communication between background and content script
 chrome.runtime.onMessage.addListener(
     async function (request, sender, sendResponse) {
 
+        // Ignore anything that is not a well-formed action message. Other
+        // listeners (e.g. tabListner) handle message-keyed requests.
+        if (!isPlainObject(request) || typeof request.action !== 'string') {
+            return;
+        }
+
         if (request.action == "storeNoteData") {
+
+            if (!isNonEmptyString(request.url)) {
+                console.warn('storeNoteData ignored: missing or invalid url.');
+                return;
+            }
 
             // get id
             const noteData = UserLocalStorage.createNote(request.url)
 
-            // send request 
+            // send request
             sendResponse({ noteData: noteData });
 
-            // update data 
+            // update data
             const noteArr = await UserLocalStorage.retriveNoteData()
             noteArr.push(noteData)
             await UserLocalStorage.setStorage(noteArr);
@@ -27,12 +48,23 @@ chrome.runtime.onMessage.addListener(
 
         if (request.action === 'filterLocalStorage') {
             const id = request.id;
+
+            if (!isNonEmptyString(id)) {
+                console.warn('filterLocalStorage ignored: missing or invalid id.');
+                return;
+            }
+
             const StoredNotes = await UserLocalStorage.retriveNoteData();
+
+            const noteToFind = StoredNotes.find(note => note.id === id);
+            if (!noteToFind) {
+                // Nothing to remove; still acknowledge so callers can proceed.
+                sendResponse({ success: true });
+                return true;
+            }
 
             // Filter out the note with the matching ID
             const newArray = StoredNotes.filter((note) => note.id !== id);
-
-            const noteToFind = StoredNotes.find(note => note.id === id);
 
             // Save the updated array back to local storage
             await UserLocalStorage.setStorage(newArray);
@@ -55,7 +87,9 @@ chrome.runtime.onMessage.addListener(
             const id = request.id
             const updateContent = request.content
 
-            if (id && typeof updateContent === 'string') {
+            // Content may legitimately be an empty string, so only the type is
+            // required here, not a non-empty value.
+            if (isNonEmptyString(id) && typeof updateContent === 'string') {
                 const noteArr = await UserLocalStorage.retriveNoteData();
                 const updatedNoteArr = noteArr.map((note) => {
                     if (note.id == id) {
@@ -69,10 +103,10 @@ chrome.runtime.onMessage.addListener(
                     return true;
                 }
 
-                // upadte in local bg 
+                // upadte in local bg
                 await UserLocalStorage.setStorage(updatedNoteArr);
 
-                // updating it into the tab 
+                // updating it into the tab
                 chrome.tabs.query({}, function (tabs) {
 
                     tabs.forEach(tab => {
@@ -88,6 +122,12 @@ chrome.runtime.onMessage.addListener(
 
         if (request.action == "removeUsingHostName") {
             const hostName = request.hostName
+
+            if (!isNonEmptyString(hostName)) {
+                console.warn('removeUsingHostName ignored: missing or invalid hostName.');
+                return;
+            }
+
             const StoredNotes = await UserLocalStorage.retriveNoteData();
 
             // Filter out the note with the matching ID
@@ -126,6 +166,12 @@ chrome.runtime.onMessage.addListener(
         if (request.action === 'storePosition') {
             const id = request.id
             const finalPosition = request.position
+
+            if (!isNonEmptyString(id) || !isPlainObject(finalPosition)) {
+                console.warn('storePosition ignored: missing or invalid id/position.');
+                return;
+            }
+
             let allNotes = await UserLocalStorage.retriveNoteData()
             let noteIndex = allNotes.findIndex(note => note.id == id);
             if (noteIndex !== -1) {
@@ -140,6 +186,12 @@ chrome.runtime.onMessage.addListener(
         if (request.action === 'updatePin') {
             const isPinEnable = request.isPinEnable
             const noteId = request.id
+
+            if (!isNonEmptyString(noteId) || typeof isPinEnable !== 'boolean') {
+                console.warn('updatePin ignored: missing or invalid id/isPinEnable.');
+                return;
+            }
+
             const notesArray = await UserLocalStorage.retriveNoteData()
             const noteToUpdate = notesArray.find(note => note.id === noteId);
 
@@ -168,7 +220,10 @@ chrome.runtime.onMessage.addListener(
             const isPinEnable = request.isPinEnable
             const noteId = request.id
 
-            // retrive data 
+            if (!isNonEmptyString(noteId) || typeof isPinEnable !== 'boolean') {
+                console.warn('enablePin ignored: missing or invalid id/isPinEnable.');
+                return;
+            }
 
             const notesArray = await UserLocalStorage.retriveNoteData()
 
@@ -183,21 +238,24 @@ chrome.runtime.onMessage.addListener(
             await UserLocalStorage.setStorage(updatedNotesArray)
 
 
-            const noteArr = await UserLocalStorage.retriveNoteData();
-            const note = noteArr.find(note => note.id === noteId);
+            const note = updatedNotesArray.find(note => note.id === noteId);
 
-            chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-                if (tabs.length > 0) {
-                    var activeTab = tabs[0];
-                    if (activeTab.id) {
-                        chrome.tabs.sendMessage(activeTab.id, { "message": "injectPopUps", "noteData": note });
+            // Only re-inject when the note actually exists, otherwise the
+            // content script would be asked to render an undefined note.
+            if (note) {
+                chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+                    if (tabs.length > 0) {
+                        var activeTab = tabs[0];
+                        if (activeTab.id) {
+                            chrome.tabs.sendMessage(activeTab.id, { "message": "injectPopUps", "noteData": note });
+                        } else {
+                            console.error("No valid tab ID found.");
+                        }
                     } else {
-                        console.error("No valid tab ID found.");
+                        console.error("No active tab found.");
                     }
-                } else {
-                    console.error("No active tab found.");
-                }
-            })
+                })
+            }
 
             return true
 
@@ -207,6 +265,11 @@ chrome.runtime.onMessage.addListener(
             const id = request.id;
             const width = request.width;
             const height = request.height;
+
+            if (!isNonEmptyString(id) || !isFiniteNumber(width) || !isFiniteNumber(height)) {
+                console.warn('StoreAndUpdateWidthAndHeight ignored: missing or invalid id/width/height.');
+                return;
+            }
 
             const allNotes = await UserLocalStorage.retriveNoteData();
 
@@ -224,6 +287,12 @@ chrome.runtime.onMessage.addListener(
 
         if (request.action === 'addSelectedColor') {
             const { selectedColor, uniqueId } = request;
+
+            if (!isNonEmptyString(uniqueId) || !ALLOWED_NOTE_COLORS.has(selectedColor)) {
+                console.warn('addSelectedColor ignored: missing id or unsupported color.');
+                return;
+            }
+
             let noteData = await UserLocalStorage.retriveNoteData();
 
             noteData = noteData.map(note => {
@@ -234,7 +303,6 @@ chrome.runtime.onMessage.addListener(
             });
 
             await UserLocalStorage.setStorage(noteData);
-            console.log(noteData);
         }
         return true
 

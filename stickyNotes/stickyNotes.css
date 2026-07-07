@@ -175,6 +175,20 @@ svg {
   gap: var(--sn-space-3);
 }
 
+.empty-state {
+  align-items: center;
+  border: 1px dashed var(--sn-border);
+  border-radius: var(--sn-radius-md);
+  color: var(--sn-text-muted);
+  display: flex;
+  font-size: 13px;
+  justify-content: center;
+  line-height: 1.4;
+  min-height: 72px;
+  padding: var(--sn-space-4);
+  text-align: center;
+}
+
 .note-card {
   background: var(--sn-surface-raised);
   border: 1px solid var(--sn-border);

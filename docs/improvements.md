@@ -28,6 +28,8 @@ The following broad UI work has been completed and should not be treated as pend
 - Fixed the All Notes tab close flow so `removeTab` targets the full notes page by its exact extension URL (`chrome.runtime.getURL('stickyNote_html_page/index.html')`) instead of the fragile `"StickyNotes"` title match that never matched.
 - Consolidated note creation into a single `UserLocalStorage.createNote(url)` helper used by both the popup and the background, ending the `title`-field drift between the two paths and adding a `schemaVersion` field for future migrations.
 - Removed the non-functional `contenteditable` heading on injected notes so the title bar no longer implies editing that was never persisted.
+- Hardened the background message boundary: every mutating handler in `mainBg.js` now validates its payload (non-empty ids, string content, finite width/height, position objects, and an allow-listed note color) and ignores malformed or unknown-shaped requests before touching storage. Also fixed two latent null-dereferences uncovered while adding validation (`filterLocalStorage` used `noteToFind.url` without a null check, and `enablePin` could message the content script with an undefined note).
+- Added popup empty, loading, and error states: the note list now shows "Loading notes...", a "no notes on this site yet" empty state, and a "notes cannot be added on this page" message when the active-tab context fails, instead of rendering a blank list.
 
 ## High Priority Bugs
 
@@ -176,17 +178,7 @@ Recommended product decision:
 - Site notes: appear on any page within a hostname.
 - Add an explicit scope toggle if both are useful.
 
-### 2. Add empty and loading states
-
-The popup and All Notes page have minimal states for no notes, no search results, unsupported pages, and storage errors.
-
-Recommended fix:
-
-- Add clear empty states for no notes and no matching search results.
-- Disable actions that do not apply.
-- Show a short error if storage or tab messaging fails.
-
-### 3. Improve pin controls
+### 2. Improve pin controls
 
 Pin/unpin terminology is inconsistent: `Pin`, `Un Pin All`, `pin/unpin`, `enablePin`, and close-as-unpin are all used.
 
@@ -196,7 +188,7 @@ Recommended fix:
 - Make close hide current note without changing pin, or explicitly label it as unpin.
 - Rename "Un Pin All" to "Unpin all".
 
-### 4. Improve accessibility
+### 3. Improve accessibility
 
 Several icon controls now have accessible labels after the UI refresh, but accessibility is not complete across generated SVG controls and older event wiring.
 
@@ -244,17 +236,7 @@ Recommended fix:
 - Exclude known unsupported schemes and browser/internal pages where possible.
 - Avoid injecting into sensitive pages if not needed.
 
-### 2. Validate all message payloads
-
-Background handlers trust incoming `request` payloads.
-
-Recommended fix:
-
-- Validate required fields and types before storage changes.
-- Ignore unknown actions.
-- Avoid acting on ids that do not exist.
-
-### 3. Avoid storing unnecessary URLs if product allows
+### 2. Avoid storing unnecessary URLs if product allows
 
 Notes currently store full page URLs. That is necessary for page-specific notes, but it is more sensitive than hostname-only storage.
 

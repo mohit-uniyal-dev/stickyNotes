@@ -158,7 +158,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return filterNote.length;
         });
     }
-    // render notes 
+    // Render a single centered message (loading / empty / error) into the
+    // note list in place of note cards.
+    const renderListMessage = (message) => {
+        allListContainer.innerHTML = '';
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = message;
+        allListContainer.appendChild(emptyState);
+    };
+
+    // render notes
     const renderNotes = async () => {
         const allListContainer = document.getElementById('allNotesList');
         allListContainer.innerHTML = ''; // Clear the current notes
@@ -175,6 +185,10 @@ document.addEventListener('DOMContentLoaded', function () {
         length = filterNote.length
         updateNoteLength(length)
 
+        if (filterNote.length === 0) {
+            renderListMessage('No notes on this site yet. Click Add Note to create one.');
+            return;
+        }
 
         notesToShow.forEach(note => {
             if (hostName === note.hostName) {
@@ -238,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // open, so a freshly created blank note is not deleted the next time the
     // popup is opened before the user has typed anything.
     (async function initPopup() {
+        renderListMessage('Loading notes...');
         try {
             await initActiveTabContext()
             retriveData()
@@ -248,6 +263,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.warn('Unable to initialize active tab context.', error)
             setHostScopedActionsEnabled(false)
             updateNoteLength(0)
+            renderListMessage('Notes cannot be added on this page.')
         }
     })();
 

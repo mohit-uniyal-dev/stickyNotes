@@ -233,16 +233,17 @@ This file handles note re-injection and unsupported pages.
 
 When a content script sends `contentScriptInjected`, the background:
 
-1. Reads the active tab.
+1. Reads the sender tab from the message.
 2. Reads stored notes.
-3. Injects notes that match active hostname, exact active URL, and `enablePin === true`.
+3. Injects notes that match sender tab hostname, exact sender tab URL, and `enablePin === true`.
 
 When a tab finishes loading, the background:
 
-1. Checks unsupported internal URLs like `chrome://newtab/` and `chrome://extensions/`.
-2. Sets the action popup to `stickyNote_html_page/error.html` for unsupported pages and the All Notes page.
-3. Reads stored notes.
-4. Injects pinned notes matching the hostname.
+1. Parses the tab URL defensively.
+2. Sets the action popup to `stickyNote_html_page/error.html` for unsupported schemes, known internal pages, and the All Notes page.
+3. Sets the action popup back to `stickyNotes/stickyNotes.html` for supported pages.
+4. Reads stored notes.
+5. Injects pinned notes that match the tab hostname and exact tab URL.
 
 ### `autoRef.js`
 

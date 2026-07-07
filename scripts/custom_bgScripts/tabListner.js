@@ -2,6 +2,16 @@ const ERROR_URLS = [
     'chrome://newtab/',
     'chrome://extensions/'
 ];
+const ERROR_POPUP = 'stickyNote_html_page/error.html';
+const NOTES_POPUP = 'stickyNotes/stickyNotes.html';
+const UNSUPPORTED_PROTOCOLS = new Set([
+    'about:',
+    'chrome:',
+    'chrome-extension:',
+    'devtools:',
+    'edge:',
+    'view-source:'
+]);
 
 const getTabUrlContext = (tab) => {
     if (!tab || !tab.url) {
@@ -12,7 +22,8 @@ const getTabUrlContext = (tab) => {
         const parsedUrl = new URL(tab.url);
         return {
             href: parsedUrl.href,
-            hostName: parsedUrl.hostname
+            hostName: parsedUrl.hostname,
+            protocol: parsedUrl.protocol
         };
     } catch (error) {
         console.warn('Unable to parse tab URL for StickyNotes restore.', error);
@@ -28,6 +39,23 @@ const isPinnedNoteForTab = (note, tabContext) => {
         note.hostName === tabContext.hostName &&
         note.url === tabContext.href
     );
+};
+
+const isUnsupportedTab = (tab, tabContext) => {
+    return Boolean(
+        !tabContext ||
+        ERROR_URLS.includes(tabContext.href) ||
+        UNSUPPORTED_PROTOCOLS.has(tabContext.protocol) ||
+        (tab && tab.title && tab.title.includes('Stick it - web notes'))
+    );
+};
+
+const setActionPopup = (tabId, popup) => {
+    if (typeof tabId !== 'number') {
+        return;
+    }
+
+    chrome.action.setPopup({ tabId: tabId, popup: popup });
 };
 
 const restorePinnedNotesForTab = async (tab) => {
@@ -67,19 +95,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     const tabContext = getTabUrlContext(tab);
     if (!tabContext) {
+        setActionPopup(tabId, ERROR_POPUP);
         return;
     }
 
-    // Check if the URL matches any in the errorURLs list
-    if (ERROR_URLS.includes(tabContext.href)) {
-        chrome.action.setPopup({ tabId: tabId, popup: '../../stickyNote_html_page/error.html' });
+    if (isUnsupportedTab(tab, tabContext)) {
+        setActionPopup(tabId, ERROR_POPUP);
         return; // Exit function to prevent further actions
     }
 
-    if (tab && tab.title && tab.title.includes('Stick it - web notes')) {
-        chrome.action.setPopup({ tabId: tabId, popup: '../../stickyNote_html_page/error.html' });
-        return;
-    }
+    setActionPopup(tabId, NOTES_POPUP);
 
     await restorePinnedNotesForTab(tab);
 });

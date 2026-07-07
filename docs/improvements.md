@@ -19,19 +19,11 @@ The following broad UI work has been completed and should not be treated as pend
 - Reworked popup and All Notes note-card rendering so saved note content is inserted with text nodes instead of being parsed through `innerHTML`.
 - Replaced All Notes search highlighting with safe text-node and `<mark>` construction, removing the unescaped `new RegExp(query, 'gi')` path.
 - Standardized pinned-note restore behavior so content-script injection and completed tab loads both restore only pinned notes for the exact page URL.
+- Fixed unsupported-page popup state so completed supported tab loads explicitly reset the action popup back to `stickyNotes/stickyNotes.html`.
 
 ## High Priority Bugs
 
-### 1. Unsupported page handling does not reset the popup
-
-`tabListner.js` sets `chrome.action.setPopup` to `error.html` for unsupported pages, but there is no clear reset to the normal popup when navigating back to supported pages.
-
-Recommended fix:
-
-- On every supported tab update, explicitly set popup back to `stickyNotes/stickyNotes.html`.
-- Guard all URL parsing because `new URL(tab.url)` can fail for some browser pages or missing URLs.
-
-### 2. All Notes search can crash when nothing is selected
+### 1. All Notes search can crash when nothing is selected
 
 `tab.js` uses `selectedNoteContainer.getAttribute(...)` during filtering. If the current selection has been cleared or no notes exist, search can throw.
 
@@ -332,7 +324,7 @@ Recommended fix:
 
 ## Suggested Implementation Order
 
-1. Fix correctness and safety issues: popup reset on supported pages and nullable All Notes selection.
+1. Fix correctness and safety issues: nullable All Notes selection.
 2. Make storage helpers Promise-based and centralize all note mutations.
 3. Refactor large files into store/model/render/controller layers.
 4. Add unit tests around note mutation and filtering.

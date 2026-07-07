@@ -26,7 +26,7 @@ class UserLocalStorage {
     }
 
     // get note data 
-    static retriveNoteData() {
+    static retrieveNoteData() {
         return this.getStorageValue('notes', []);
     }
 
@@ -91,7 +91,7 @@ class UserLocalStorage {
     }
 
     static async removeNoteById(noteId) {
-        const notes = await this.retriveNoteData();
+        const notes = await this.retrieveNoteData();
         const updatedNotes = notes.filter((note) => note.id !== noteId);
 
         if (updatedNotes.length !== notes.length) {
@@ -102,7 +102,7 @@ class UserLocalStorage {
     }
 
     static async removeEmptyNotesForUrl(url) {
-        const notes = await this.retriveNoteData();
+        const notes = await this.retrieveNoteData();
         const removedNotes = notes.filter((note) => note.url === url && this.isEmptyNote(note));
 
         if (removedNotes.length === 0) {
@@ -116,7 +116,7 @@ class UserLocalStorage {
     }
 
     static async removeAllEmptyNotes() {
-        const notes = await this.retriveNoteData();
+        const notes = await this.retrieveNoteData();
         const removedNotes = notes.filter((note) => this.isEmptyNote(note));
 
         if (removedNotes.length === 0) {
@@ -163,7 +163,7 @@ class UserLocalStorage {
     // pin 
     static async updateNote(updateNotes, pin) {
         try {
-            const allNotes = await this.retriveNoteData(); // Retrieve all notes
+            const allNotes = await this.retrieveNoteData(); // Retrieve all notes
 
             // Map through allNotes to update specific notes based on updateNotes array
             const updatedNotes = allNotes.map(note => {

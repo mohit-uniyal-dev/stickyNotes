@@ -2,7 +2,7 @@ let selectedNoteContainer = null;
 // get note data which has been inserted
 let flag = true
 let isViewGrid = true
-let isSideBarVisiable = true
+let isSideBarVisible = true
 const grid = document.getElementsByClassName('grid')
 const containerEle = document.querySelector('.contentContainer');
 
@@ -13,7 +13,7 @@ const containerEle = document.querySelector('.contentContainer');
 
 
 const getNotesDataInSideBar = async () => {
-    const notesData = await UserLocalStorage.retriveNoteData();
+    const notesData = await UserLocalStorage.retrieveNoteData();
     return notesData;
 };
 
@@ -112,9 +112,9 @@ const stickyNoteSideBar = document.querySelector('.stickyNoteSideBar')
 const sideBarImg = document.querySelector('.open-position')
 
 sideBar.addEventListener('click', (event) => {
-    isSideBarVisiable = !isSideBarVisiable
+    isSideBarVisible = !isSideBarVisible
 
-    if (isSideBarVisiable === false) {
+    if (isSideBarVisible === false) {
         // stickyNoteSideBar.style.display = 'none'
         stickyNoteSideBar.classList.add('sideBarCloseBtn')
         sideBar.classList.remove('sideBarOpen')
@@ -403,7 +403,7 @@ const toggleNoteContainerSelection = () => {
         const hostName = getSelectedHostName();
 
         if (flag) {
-            UserLocalStorage.retriveNoteData().then(async (storeArr) => {
+            UserLocalStorage.retrieveNoteData().then(async (storeArr) => {
                 renderMainNotesForHost(storeArr, hostName);
                 eventListenerForEditBtn()
                 eventListenerForDeleteBtn()
@@ -444,7 +444,7 @@ const toggleNoteContainerSelection = () => {
                 const hostName = noteContainer.getAttribute('hostName');
 
                 // Get the data from local storage
-                const storeArr = await UserLocalStorage.retriveNoteData();
+                const storeArr = await UserLocalStorage.retrieveNoteData();
                 // Inject content in main
                 const searchBox = document.getElementById('searchBox');
                 const hasEmptySearch = searchBox.value.trim() === '';
@@ -503,7 +503,7 @@ const eventListenerForDeleteBtn = () => {
                 if (cardToRemove) {
                     cardToRemove.remove();
 
-                    const noteArr = await UserLocalStorage.retriveNoteData()
+                    const noteArr = await UserLocalStorage.retrieveNoteData()
                     const filerArr = noteArr.filter(note => note.id !== id)
                     await UserLocalStorage.setStorage(filerArr)
 

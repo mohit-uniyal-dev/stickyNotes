@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /*                          START                      */
     // get totoal no of page 
     const getTotalPages = async () => {
-        const allNotes = await UserLocalStorage.retriveNoteData()
+        const allNotes = await UserLocalStorage.retrieveNoteData()
         const filterNotes = allNotes.filter(noteObj => { return noteObj.hostName === hostName })
         return new Promise((resolve, reject) => {
             const result = Math.ceil(filterNotes.length / notesPerPage);
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function getSameHostNameLength() {
-        return UserLocalStorage.retriveNoteData().then(noteArr => {
+        return UserLocalStorage.retrieveNoteData().then(noteArr => {
             const filterNote = noteArr.filter(noteObj => noteObj.hostName === hostName);
             return filterNote.length;
         });
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let endIndex = startIndex + notesPerPage;
 
 
-        noteArr = await UserLocalStorage.retriveNoteData()
+        noteArr = await UserLocalStorage.retrieveNoteData()
         // based of the start and end value get noteToShow 
         const filterNote = noteArr.filter(noteObj => { return noteObj.hostName === hostName })
         const notesToShow = filterNote.slice(startIndex, endIndex);
@@ -234,9 +234,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    const retriveData = async () => {
+    const retrieveData = async () => {
 
-        const noteArr = await UserLocalStorage.retriveNoteData()
+        const noteArr = await UserLocalStorage.retrieveNoteData()
         if (noteArr.length > 0) {
 
             noteArr.forEach((element, index) => {
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
         renderListMessage('Loading notes...');
         try {
             await initActiveTabContext()
-            retriveData()
+            retrieveData()
             renderNotes();
             renderPagination();
             checkPagination()
@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // event listner for delete btn 
         deleteBtn.addEventListener('click', async () => {
             if (confirm(getDeleteMessage())) {
-                const noteArr = await UserLocalStorage.retriveNoteData()
+                const noteArr = await UserLocalStorage.retrieveNoteData()
                 if (noteArr.length > 0) {
                     noteArr.forEach(async (note) => {
                         const id = note.id
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             length = length - 1
                             updateNoteLength(length)
 
-                            const updateNote = await UserLocalStorage.retriveNoteData()
+                            const updateNote = await UserLocalStorage.retrieveNoteData()
                             if (updateNote.length % 2 !== 0) {
                                 changePage(currentPage - 1)
                                 checkPagination()
@@ -456,8 +456,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const noteData = UserLocalStorage.createNote(url)
             chrome.tabs.sendMessage(activeTab.id, { "message": "start", "noteData": noteData }, async function (response) {
                 if (response && response.status === "success") {
-                    // update the data in loaclstorage
-                    noteArr = await UserLocalStorage.retriveNoteData()
+                    // update the data in localstorage
+                    noteArr = await UserLocalStorage.retrieveNoteData()
                     noteArr.push(noteData)
                     await UserLocalStorage.setStorage(noteArr);
                     // inject a add in the extension with the id data 
@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const settingsMenu = document.getElementById('settingsMenu');
         settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
 
-        const noteArr = await UserLocalStorage.retriveNoteData();
+        const noteArr = await UserLocalStorage.retrieveNoteData();
         const displayUnpin = noteArr.some(note => note.enablePin === true);
 
         const unpinBtn = document.getElementById('unPinAll');
@@ -519,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('unPinAll').addEventListener('click', async () => {
         console.log('triggered !')
         const button = document.getElementById('unPinAll');
-        const noteArr = await UserLocalStorage.retriveNoteData();
+        const noteArr = await UserLocalStorage.retrieveNoteData();
         const filterNote = noteArr.filter(note => note.hostName === hostName);
 
         // if state is not false then it is true 

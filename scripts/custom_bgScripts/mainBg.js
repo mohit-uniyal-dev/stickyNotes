@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener(
     async function (request, sender, sendResponse) {
 
         // Ignore anything that is not a well-formed action message. Other
-        // listeners (e.g. tabListner) handle message-keyed requests.
+        // listeners (e.g. tabListener) handle message-keyed requests.
         if (!isPlainObject(request) || typeof request.action !== 'string') {
             return;
         }
@@ -34,7 +34,7 @@ chrome.runtime.onMessage.addListener(
             sendResponse({ noteData: noteData });
 
             // update data
-            const noteArr = await UserLocalStorage.retriveNoteData()
+            const noteArr = await UserLocalStorage.retrieveNoteData()
             noteArr.push(noteData)
             await UserLocalStorage.setStorage(noteArr);
 
@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            const StoredNotes = await UserLocalStorage.retriveNoteData();
+            const StoredNotes = await UserLocalStorage.retrieveNoteData();
 
             const noteToFind = StoredNotes.find(note => note.id === id);
             if (!noteToFind) {
@@ -90,7 +90,7 @@ chrome.runtime.onMessage.addListener(
             // Content may legitimately be an empty string, so only the type is
             // required here, not a non-empty value.
             if (isNonEmptyString(id) && typeof updateContent === 'string') {
-                const noteArr = await UserLocalStorage.retriveNoteData();
+                const noteArr = await UserLocalStorage.retrieveNoteData();
                 const updatedNoteArr = noteArr.map((note) => {
                     if (note.id == id) {
                         return { ...note, content: updateContent };
@@ -128,7 +128,7 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            const StoredNotes = await UserLocalStorage.retriveNoteData();
+            const StoredNotes = await UserLocalStorage.retrieveNoteData();
 
             // Filter out the note with the matching ID
             const newArray = StoredNotes.filter((note) => note.hostName === hostName);
@@ -172,7 +172,7 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            let allNotes = await UserLocalStorage.retriveNoteData()
+            let allNotes = await UserLocalStorage.retrieveNoteData()
             let noteIndex = allNotes.findIndex(note => note.id == id);
             if (noteIndex !== -1) {
                 // Update the position of the found note
@@ -192,7 +192,7 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            const notesArray = await UserLocalStorage.retriveNoteData()
+            const notesArray = await UserLocalStorage.retrieveNoteData()
             const noteToUpdate = notesArray.find(note => note.id === noteId);
 
             if (!noteToUpdate) {
@@ -225,7 +225,7 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            const notesArray = await UserLocalStorage.retriveNoteData()
+            const notesArray = await UserLocalStorage.retrieveNoteData()
 
             // Filter and update pinEnable
             const updatedNotesArray = notesArray.map(note => {
@@ -271,7 +271,7 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            const allNotes = await UserLocalStorage.retriveNoteData();
+            const allNotes = await UserLocalStorage.retrieveNoteData();
 
             // Find the note by id
             const noteIndex = allNotes.findIndex(note => note.id === id);
@@ -293,7 +293,7 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            let noteData = await UserLocalStorage.retriveNoteData();
+            let noteData = await UserLocalStorage.retrieveNoteData();
 
             noteData = noteData.map(note => {
                 if (note.id === uniqueId) {

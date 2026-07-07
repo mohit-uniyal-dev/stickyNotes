@@ -68,7 +68,7 @@ const restorePinnedNotesForTab = async (tab) => {
         return;
     }
 
-    const noteArr = await UserLocalStorage.retriveNoteData();
+    const noteArr = await UserLocalStorage.retrieveNoteData();
     const notesToRestore = noteArr.filter((note) => isPinnedNoteForTab(note, tabContext));
 
     notesToRestore.forEach((note) => {

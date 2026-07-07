@@ -31,6 +31,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Hardened the background message boundary: every mutating handler in `mainBg.js` now validates its payload (non-empty ids, string content, finite width/height, position objects, and an allow-listed note color) and ignores malformed or unknown-shaped requests before touching storage. Also fixed two latent null-dereferences uncovered while adding validation (`filterLocalStorage` used `noteToFind.url` without a null check, and `enablePin` could message the content script with an undefined note).
 - Added popup empty, loading, and error states: the note list now shows "Loading notes...", a "no notes on this site yet" empty state, and a "notes cannot be added on this page" message when the active-tab context fails, instead of rendering a blank list.
 - Made the All Notes page action icons (open-in-new-tab, delete-site, delete-note) real keyboard-operable `<button>` controls with `aria-label`s, decorative `aria-hidden` SVGs, and visible focus rings, so they are reachable and operable without a mouse.
+- Normalized naming and spelling: renamed `retriveNoteData`/`retriveData` to `retrieveNoteData`/`retrieveData` across all call sites, renamed `tabListner.js`/`removeTabListner.js` to `tabListener.js`/`removeTabListener.js` (updating the `background.js` imports), and corrected `isSideBarVisiable`/`loaclstorage`/`clove btn` and similar identifiers and comments.
 
 ## High Priority Bugs
 
@@ -81,21 +82,7 @@ Current status:
 - Popup note cards and All Notes page note cards now use DOM construction for dynamic note rendering.
 - Some static shell markup still uses templates, but note data should continue to be inserted through DOM APIs.
 
-### 3. Normalize naming and spelling
-
-Examples:
-
-- `retriveNoteData` should be `retrieveNoteData`.
-- `tabListner.js` should be `tabListener.js`.
-- `removeTabListner.js` should be `removeTabListener.js`.
-- `clove btn`, `Visiable`, `loaclstorage`, and similar comments/variables should be corrected.
-
-Recommended refactor:
-
-- Rename internal functions and files carefully.
-- Keep compatibility wrappers where renaming could touch many files.
-
-### 4. Use constants for message names
+### 3. Use constants for message names
 
 Message names such as `injectPopUps`, `removeUsingHostName`, `enablePin`, and `StoreAndUpdateWidthAndHeight` are repeated as raw strings.
 
@@ -105,7 +92,7 @@ Recommended refactor:
 - Keep action names consistent in casing.
 - Validate message payloads in background before mutating storage.
 
-### 5. Improve async message handling
+### 4. Improve async message handling
 
 Some listeners return `true` globally while some branches also call `sendResponse`. This makes it harder to reason about response lifetimes.
 

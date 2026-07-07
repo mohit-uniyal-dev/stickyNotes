@@ -58,8 +58,8 @@ The background service worker imports:
 - `scripts/custom_script/localdb.js`
 - `scripts/custom_bgScripts/autoRef.js`
 - `scripts/custom_bgScripts/mainBg.js`
-- `scripts/custom_bgScripts/tabListner.js`
-- `scripts/custom_bgScripts/removeTabListner.js`
+- `scripts/custom_bgScripts/tabListener.js`
+- `scripts/custom_bgScripts/removeTabListener.js`
 
 ## Data Model
 
@@ -229,7 +229,7 @@ This file handles most runtime messages:
 - `StoreAndUpdateWidthAndHeight`: saves note dimensions.
 - `addSelectedColor`: saves selected note color.
 
-### `tabListner.js`
+### `tabListener.js`
 
 This file handles note re-injection and unsupported pages.
 
@@ -251,7 +251,7 @@ When a tab finishes loading, the background:
 
 On extension install or update, it reloads all open tabs so the content scripts are available immediately.
 
-### `removeTabListner.js`
+### `removeTabListener.js`
 
 This file tracks tab URLs in memory. When a tab closes, it removes stored notes for that exact tab URL if their content is empty, using the shared empty-note cleanup helper.
 

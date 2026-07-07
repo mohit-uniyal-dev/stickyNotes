@@ -16,7 +16,7 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
 
     });
 
-    // clove btn 
+    // close btn
     const closeBtn = shadowRoot.querySelector('.close-btn');
     const pin = shadowRoot.querySelector('.pin');
     const title = shadowRoot.querySelector('.title')

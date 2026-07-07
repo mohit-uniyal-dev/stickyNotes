@@ -46,6 +46,7 @@
   --sn-note-purple: #7c3aed;
   --sn-note-pink: #db2777;
   --sn-note-default: #15191f;
+  --sn-note-title-text: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -77,6 +78,7 @@
     --sn-success: #4ade80;
 
     --sn-note-default: #23282e;
+    --sn-note-title-text: #ffffff;
   }
 }
 
@@ -109,6 +111,7 @@
   --sn-success: #15803d;
 
   --sn-note-default: #15191f;
+  --sn-note-title-text: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -140,6 +143,7 @@
   --sn-success: #4ade80;
 
   --sn-note-default: #23282e;
+  --sn-note-title-text: #ffffff;
 }
 
 html,

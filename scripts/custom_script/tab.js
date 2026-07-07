@@ -72,13 +72,13 @@ const createCardsForNote = (note) => {
     <div id="${note.id}"  hostName="${note.hostName}" class="d-flex flex-column border border-light noteContainer">
         <div data-url="${note.url}" class="note-header url px-3 py-3 d-flex justify-content-between align-items-center">
             <div id="hostName"  class="cursor-pointer hostName">${note.hostName}</div>
-           <div>
-           <svg xmlns="http://www.w3.org/2000/svg" data-url="${note.url}" width="16" height="16" fill="currentColor" class="bi navigation bi-arrow-up-right-square toolTipNav" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5.854 8.803a.5.5 0 1 1-.708-.707L9.243 6H6.475a.5.5 0 1 1 0-1h3.975a.5.5 0 0 1 .5.5v3.975a.5.5 0 1 1-1 0V6.707z"/>
+           <div class="sidebar-card-actions">
+           <svg xmlns="http://www.w3.org/2000/svg" data-url="${note.url}" width="16" height="16" fill="none" class="bi navigation bi-arrow-up-right-square toolTipNav" viewBox="0 0 24 24">
+  <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi delete-note bi-trash custom-margin-10" viewBox="0 0 16 16">
-                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" class="bi delete-note bi-trash custom-margin-10" viewBox="0 0 24 24">
+                <path d="M9 11v6M15 11v6M4 7h16M10 4h4a1 1 0 0 1 1 1v2H9V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="m6 7 1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
             </svg>
            </div>
         </div>
@@ -97,13 +97,13 @@ const TextAreaForNotesHtml = (note) => {
     <div id="Cards" class="${id} card-size ${cardClass} mx-2 my-2">
         <div class="w-100 heading text-dark px-3 py-2 ${colorClass}">
             <div class="w-100 d-flex justify-content-between">
-                <div>
+                <div class="note-card-meta">
                   <span class="px-2">${note.date.replace(/\//g, '-')}</span><span class="px-2">${note.time}</span>
                 </div>
                 <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" unique-id='${id}' width="16" height="16" fill="currentColor" class="bi bi-trash deleteNoteBtn" viewBox="0 0 16 16">
-                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                     <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" unique-id='${id}' width="16" height="16" fill="none" class="bi bi-trash deleteNoteBtn" viewBox="0 0 24 24">
+                     <path d="M9 11v6M15 11v6M4 7h16M10 4h4a1 1 0 0 1 1 1v2H9V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                     <path d="m6 7 1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                    </svg>
                 </div>
             </div>

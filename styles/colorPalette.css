@@ -21,29 +21,20 @@
     --color-default: var(--sn-note-default);
 }
 
-.select {
-    background-color: var(--page-heading);
-    filter: brightness(0.9); 
-    color: white !important ; 
+.tippy-box[data-theme~="clean"] {
+    background: var(--sn-surface-raised);
+    border: 1px solid var(--sn-border);
+    border-radius: var(--sn-radius-sm);
+    box-shadow: var(--sn-shadow-soft);
+    color: var(--sn-text);
+    font-size: 11px;
+    font-weight: 700;
 }
 
-/* Custom styles for tooltips */
-.custom-tooltip .tippy-box {
-    font-size: 10px !important; /* Adjust font size */
-    padding: 10px !important; /* Adjust padding if needed */
-    background-color: var(--bg-lighter) !important;
+.tippy-box[data-theme~="clean"] .tippy-arrow {
+    color: var(--sn-surface-raised);
 }
 
-
-/* Base style for icons */
- svg {
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-    outline: none;
-}
-
-/* Pressed effect */
- svg:active {
-    transform: scale(0.9); /* Slightly reduce size */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add shadow to simulate depth */
-    outline: none;
+.tippy-box[data-theme~="clean"] .tippy-content {
+    padding: 7px 9px;
 }

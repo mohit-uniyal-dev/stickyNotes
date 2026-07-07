@@ -36,6 +36,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Fixed the injected-note caret reset: `createCardAndUpdate` no longer overwrites the note the user is actively editing (`shadowRoot.activeElement`) or performs no-op `textContent` rewrites, so echoed edits and mid-edit re-injections no longer collapse the cursor to the start.
 - Clamped the popup note-card preview to two lines with an ellipsis (`-webkit-line-clamp`) and added `overflow-wrap: anywhere`, replacing the fixed `max-height` that sliced text mid-line.
 - Converted injected-note dragging and resizing from mouse events to Pointer Events with pointer capture: adds touch/pen support, removes global `document` listeners, skips drags that begin on the note's control buttons, and persists position/size once on pointer-up (dragging previously saved via a debounced `mousemove`). Added `touch-action: none` to the drag handle and resize handles.
+- Made the All Notes sidebar host cards keyboard-operable: each card is now a focusable `role="button"` with an `aria-label`, an `aria-pressed` state kept in sync with selection, Enter/Space activation (ignoring keys from the nested action buttons), and a visible focus ring.
 
 ## High Priority Bugs
 
@@ -167,7 +168,6 @@ Icon controls across the popup, injected note, and All Notes page now use real `
 Recommended fix:
 
 - Add keyboard support for the draggable/resizable note (e.g. move and resize by arrow keys).
-- Make All Notes host cards selectable by keyboard, not just by click.
 - Ensure note category colors are conveyed by more than color alone (e.g. a label or icon).
 
 ## Testing Gaps

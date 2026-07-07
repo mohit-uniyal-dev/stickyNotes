@@ -218,6 +218,12 @@ svg {
   transform: translateY(-1px);
 }
 
+.noteContainer:focus-visible {
+  border-color: var(--sn-primary) !important;
+  box-shadow: var(--sn-shadow-ring);
+  outline: none;
+}
+
 .noteContainer.select {
   background: var(--sn-surface-raised);
   border-color: var(--sn-primary) !important;

@@ -48,6 +48,14 @@ const findSidebarItemByHost = (hostName) => {
     }) || null;
 };
 
+// Reflect the visual `.select` state to assistive tech via aria-pressed so a
+// screen reader announces which host card is active.
+const syncHostCardPressedState = () => {
+    document.querySelectorAll('.noteContainer').forEach((noteContainer) => {
+        noteContainer.setAttribute('aria-pressed', noteContainer.classList.contains('select') ? 'true' : 'false');
+    });
+};
+
 const selectSidebarItem = (hostName) => {
     document.querySelectorAll('.noteContainer.select').forEach((noteContainer) => {
         noteContainer.classList.remove('select');
@@ -59,6 +67,7 @@ const selectSidebarItem = (hostName) => {
         selectedNoteContainer.classList.add('select');
     }
 
+    syncHostCardPressedState();
     return selectedNoteContainer;
 };
 
@@ -273,6 +282,12 @@ const createCardsForNote = (note, query) => {
     const noteContainer = createElement('div', 'd-flex flex-column border border-light noteContainer');
     noteContainer.id = note.id;
     noteContainer.setAttribute('hostName', note.hostName);
+    // Keyboard/AT support: the whole card acts as a toggle that shows the
+    // host's notes, so expose it as a focusable button with a name and state.
+    noteContainer.setAttribute('role', 'button');
+    noteContainer.setAttribute('tabindex', '0');
+    noteContainer.setAttribute('aria-pressed', 'false');
+    noteContainer.setAttribute('aria-label', `Show notes for ${note.hostName}`);
 
     const header = createElement('div', 'note-header url px-3 py-3 d-flex justify-content-between align-items-center');
     header.dataset.url = note.url;
@@ -458,8 +473,19 @@ const toggleNoteContainerSelection = () => {
 
                 flag = true
             }
+            syncHostCardPressedState();
             eventListenerForEditBtn()
             eventListenerForDeleteBtn()
+        });
+
+        // Activate selection with the keyboard when the card itself is focused
+        // (ignore keys bubbling up from the nested action buttons).
+        noteContainer.addEventListener('keydown', (event) => {
+            if (event.target !== noteContainer) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                noteContainer.click();
+            }
         });
     });
 

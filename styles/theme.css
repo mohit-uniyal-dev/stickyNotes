@@ -1,0 +1,188 @@
+:root {
+  color-scheme: light dark;
+
+  --sn-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --sn-radius-sm: 6px;
+  --sn-radius-md: 8px;
+  --sn-radius-lg: 10px;
+
+  --sn-space-1: 4px;
+  --sn-space-2: 8px;
+  --sn-space-3: 12px;
+  --sn-space-4: 16px;
+  --sn-space-5: 20px;
+
+  --sn-shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.16);
+  --sn-shadow-ring: 0 0 0 3px rgba(37, 99, 235, 0.18);
+
+  --sn-bg: #f6f7f9;
+  --sn-surface: #ffffff;
+  --sn-surface-raised: #ffffff;
+  --sn-surface-muted: #eef1f5;
+  --sn-border: #d9dee7;
+  --sn-border-strong: #b7c0cf;
+
+  --sn-text: #15191f;
+  --sn-text-muted: #5e6877;
+  --sn-text-inverse: #ffffff;
+
+  --sn-primary: #2563eb;
+  --sn-primary-hover: #1d4ed8;
+  --sn-primary-pressed: #1e40af;
+  --sn-primary-soft: #dbeafe;
+
+  --sn-warning: #d97706;
+  --sn-warning-soft: #fff4df;
+  --sn-warning-border: #f0c36a;
+  --sn-danger: #dc2626;
+  --sn-success: #15803d;
+
+  --sn-note-red: #dc2626;
+  --sn-note-yellow: #ca8a04;
+  --sn-note-green: #16803d;
+  --sn-note-grey: #4b5563;
+  --sn-note-purple: #7c3aed;
+  --sn-note-pink: #db2777;
+  --sn-note-default: #15191f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sn-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.36);
+    --sn-shadow-ring: 0 0 0 3px rgba(96, 165, 250, 0.24);
+
+    --sn-bg: #121416;
+    --sn-surface: #1b1f23;
+    --sn-surface-raised: #23282e;
+    --sn-surface-muted: #2c333a;
+    --sn-border: #363e47;
+    --sn-border-strong: #4a5562;
+
+    --sn-text: #f4f6f8;
+    --sn-text-muted: #a5afbb;
+    --sn-text-inverse: #ffffff;
+
+    --sn-primary: #60a5fa;
+    --sn-primary-hover: #93c5fd;
+    --sn-primary-pressed: #bfdbfe;
+    --sn-primary-soft: #18304f;
+
+    --sn-warning: #f59e0b;
+    --sn-warning-soft: #3f2b12;
+    --sn-warning-border: #72521f;
+    --sn-danger: #f87171;
+    --sn-success: #4ade80;
+
+    --sn-note-default: #23282e;
+  }
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --sn-shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.16);
+  --sn-shadow-ring: 0 0 0 3px rgba(37, 99, 235, 0.18);
+
+  --sn-bg: #f6f7f9;
+  --sn-surface: #ffffff;
+  --sn-surface-raised: #ffffff;
+  --sn-surface-muted: #eef1f5;
+  --sn-border: #d9dee7;
+  --sn-border-strong: #b7c0cf;
+
+  --sn-text: #15191f;
+  --sn-text-muted: #5e6877;
+  --sn-text-inverse: #ffffff;
+
+  --sn-primary: #2563eb;
+  --sn-primary-hover: #1d4ed8;
+  --sn-primary-pressed: #1e40af;
+  --sn-primary-soft: #dbeafe;
+
+  --sn-warning: #d97706;
+  --sn-warning-soft: #fff4df;
+  --sn-warning-border: #f0c36a;
+  --sn-danger: #dc2626;
+  --sn-success: #15803d;
+
+  --sn-note-default: #15191f;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --sn-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.36);
+  --sn-shadow-ring: 0 0 0 3px rgba(96, 165, 250, 0.24);
+
+  --sn-bg: #121416;
+  --sn-surface: #1b1f23;
+  --sn-surface-raised: #23282e;
+  --sn-surface-muted: #2c333a;
+  --sn-border: #363e47;
+  --sn-border-strong: #4a5562;
+
+  --sn-text: #f4f6f8;
+  --sn-text-muted: #a5afbb;
+  --sn-text-inverse: #ffffff;
+
+  --sn-primary: #60a5fa;
+  --sn-primary-hover: #93c5fd;
+  --sn-primary-pressed: #bfdbfe;
+  --sn-primary-soft: #18304f;
+
+  --sn-warning: #f59e0b;
+  --sn-warning-soft: #3f2b12;
+  --sn-warning-border: #72521f;
+  --sn-danger: #f87171;
+  --sn-success: #4ade80;
+
+  --sn-note-default: #23282e;
+}
+
+html,
+body {
+  font-family: var(--sn-font-family);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.sn-button {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--sn-radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 700;
+  gap: var(--sn-space-2);
+  justify-content: center;
+  line-height: 1;
+  min-height: 36px;
+  padding: 0 var(--sn-space-4);
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+
+.sn-button:focus-visible {
+  box-shadow: var(--sn-shadow-ring);
+  outline: none;
+}
+
+.sn-button:active {
+  transform: translateY(1px);
+}
+
+.sn-button-primary {
+  background: var(--sn-primary);
+  color: var(--sn-text-inverse);
+}
+
+.sn-button-primary:hover {
+  background: var(--sn-primary-hover);
+}
+
+.sn-button-primary:active {
+  background: var(--sn-primary-pressed);
+}

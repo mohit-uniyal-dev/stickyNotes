@@ -3,15 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ERROR</title>
+    <title>Stick it - unsupported page</title>
     <link rel="stylesheet" href="../styles/colorPalette.css" />
     <link rel="stylesheet" href="../styles/error.css" />
   </head>
   <body>
-    <div style="padding: 10px; display: flex; width: 20rem">
-      <strong>Stick it - web notes</strong> : cannot be used on this website.
-    </div>
-    <button class="btn" id="seeAllNotes">Open Notes Tab</button>
+    <main class="unsupported-popup" aria-labelledby="unsupportedTitle">
+      <div class="unsupported-header">
+        <div class="unsupported-icon" aria-hidden="true">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 8v5"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M12 17h.01"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            />
+            <path
+              d="M10.2 3.9 2.9 17.1A2 2 0 0 0 4.7 20h14.6a2 2 0 0 0 1.8-2.9L13.8 3.9a2.1 2.1 0 0 0-3.6 0Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="unsupported-copy">
+          <h1 id="unsupportedTitle">Stick it - web notes</h1>
+          <p>Notes cannot be inserted on this page.</p>
+        </div>
+      </div>
+      <button class="sn-button sn-button-primary unsupported-action" id="seeAllNotes" type="button">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M7 7h10M7 12h10M7 17h6"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <path
+            d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+        </svg>
+        Open Notes Tab
+      </button>
+    </main>
+    <script src="./error.js"></script>
   </body>
-  <script src="./error.js"></script>
 </html>

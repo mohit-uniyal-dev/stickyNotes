@@ -1,33 +1,24 @@
+@import url("./theme.css");
+
 :root {
-    /* --font-color : #E2E2B6; 
-    --background-color: hsl(208, 90%, 8%);
-    --heading-color: #E2E2B6 ; 
-    --font-heading: black; */
-    --bg-lighter : hsl(208, 90%, 12%);
+    --bg-lighter: var(--sn-surface-muted);
 
-    --popup-bg : #E2E2B6; 
-    --popup-color : hsl(208, 90%, 8%) ; 
-    --popup-heading  :  hsl(208, 90%, 8%) ; 
-    --popup-heading-color : #E2E2B6 ; 
+    --popup-bg: var(--sn-surface);
+    --popup-color: var(--sn-text);
+    --popup-heading: var(--sn-note-default);
+    --popup-heading-color: var(--sn-text-inverse);
 
-    /* --primary-font: obviously-narrow, sans-serif;
-    --secondary-font: halyard-display, sans-serif; */
+    --page-bg: var(--sn-bg);
+    --page-heading: var(--sn-note-default);
+    --page-font: var(--sn-text-inverse);
 
-    /* for html page  */
-    --page-bg : #E2E2B6 ;
-    --page-heading :  hsl(208, 90%, 8%); 
-    --page-font: white ; 
-
-
-    --color-red: red;
-    --color-yellow: #9d9d10;
-    --color-green: green;
-    --color-grey: #4c4c4c;
-    --color-purple: purple;
-    --color-pink: #d57485;
-    --color-default: var(--popup-heading);
-
-
+    --color-red: var(--sn-note-red);
+    --color-yellow: var(--sn-note-yellow);
+    --color-green: var(--sn-note-green);
+    --color-grey: var(--sn-note-grey);
+    --color-purple: var(--sn-note-purple);
+    --color-pink: var(--sn-note-pink);
+    --color-default: var(--sn-note-default);
 }
 
 .select {

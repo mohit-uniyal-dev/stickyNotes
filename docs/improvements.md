@@ -26,6 +26,8 @@ The following broad UI work has been completed and should not be treated as pend
 - Routed injected note content edits through the background `updateNoteContent` message so content scripts no longer write note data directly to `chrome.storage.local`.
 - Centralized empty-note cleanup through `UserLocalStorage` helpers and applied the no-empty-drafts policy on note close and tab close. Popup open no longer deletes empty notes, so a freshly created blank note survives reopening the popup before the user types.
 - Fixed the All Notes tab close flow so `removeTab` targets the full notes page by its exact extension URL (`chrome.runtime.getURL('stickyNote_html_page/index.html')`) instead of the fragile `"StickyNotes"` title match that never matched.
+- Consolidated note creation into a single `UserLocalStorage.createNote(url)` helper used by both the popup and the background, ending the `title`-field drift between the two paths and adding a `schemaVersion` field for future migrations.
+- Removed the non-functional `contenteditable` heading on injected notes so the title bar no longer implies editing that was never persisted.
 
 ## High Priority Bugs
 
@@ -45,17 +47,7 @@ Recommended fix:
 
 ## Refactoring Opportunities
 
-### 1. Consolidate note creation
-
-Notes are created in both popup code and `mainBg.js`, with slightly different fields. This can lead to schema drift.
-
-Recommended refactor:
-
-- Create one `createNote({ url })` helper.
-- Use it from both popup and background flows.
-- Add a schema version field to support migrations later.
-
-### 2. Split large files by responsibility
+### 1. Split large files by responsibility
 
 `stickyNotes.js`, `tab.js`, and `mainBg.js` mix UI rendering, storage access, message handling, and business rules.
 
@@ -69,7 +61,7 @@ Recommended refactor:
 - `allNotesController.js`: full page orchestration.
 - `allNotesRenderer.js`: full page rendering.
 
-### 3. Replace string-built HTML for dynamic UI
+### 2. Replace string-built HTML for dynamic UI
 
 The code currently builds large HTML strings and inserts them via `innerHTML`.
 
@@ -86,7 +78,7 @@ Current status:
 - Popup note cards and All Notes page note cards now use DOM construction for dynamic note rendering.
 - Some static shell markup still uses templates, but note data should continue to be inserted through DOM APIs.
 
-### 4. Normalize naming and spelling
+### 3. Normalize naming and spelling
 
 Examples:
 
@@ -100,7 +92,7 @@ Recommended refactor:
 - Rename internal functions and files carefully.
 - Keep compatibility wrappers where renaming could touch many files.
 
-### 5. Use constants for message names
+### 4. Use constants for message names
 
 Message names such as `injectPopUps`, `removeUsingHostName`, `enablePin`, and `StoreAndUpdateWidthAndHeight` are repeated as raw strings.
 
@@ -110,7 +102,7 @@ Recommended refactor:
 - Keep action names consistent in casing.
 - Validate message payloads in background before mutating storage.
 
-### 6. Improve async message handling
+### 5. Improve async message handling
 
 Some listeners return `true` globally while some branches also call `sendResponse`. This makes it harder to reason about response lifetimes.
 
@@ -204,16 +196,7 @@ Recommended fix:
 - Make close hide current note without changing pin, or explicitly label it as unpin.
 - Rename "Un Pin All" to "Unpin all".
 
-### 4. Add note titles or remove title UI
-
-Injected notes show an editable `"Stick it"` heading, but the edited title is not persisted. Background-created notes have a default `title` field but UI does not use it consistently.
-
-Recommended fix:
-
-- Persist editable note titles.
-- Or remove title editing until title support is fully implemented.
-
-### 5. Improve accessibility
+### 4. Improve accessibility
 
 Several icon controls now have accessible labels after the UI refresh, but accessibility is not complete across generated SVG controls and older event wiring.
 

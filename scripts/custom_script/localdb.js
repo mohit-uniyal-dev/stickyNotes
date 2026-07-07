@@ -44,9 +44,42 @@ class UserLocalStorage {
         });
     }
 
-    // update note data 
+    // update note data
     static setStorage(noteArr) {
         return this.setStorageValue({ notes: noteArr });
+    }
+
+    // Current note schema version. Bump when the note shape changes so future
+    // migrations can detect and upgrade older stored notes.
+    static get NOTE_SCHEMA_VERSION() {
+        return 1;
+    }
+
+    // Single source of truth for a new note. Used by both the popup and the
+    // background so the stored note shape cannot drift between the two paths.
+    static createNote(url) {
+        const now = new Date();
+        const timestamp = now.getTime();
+        const randomComponent = Math.random().toString(36).substring(2, 15);
+
+        let hostName = '';
+        try {
+            hostName = new URL(url).hostname;
+        } catch (error) {
+            console.warn('createNote received an unparseable URL.', error);
+        }
+
+        return {
+            id: `${timestamp}-${randomComponent}`,
+            date: now.toLocaleDateString(),
+            time: now.toLocaleTimeString(),
+            hostName: hostName,
+            url: url,
+            content: '',
+            title: 'Title',
+            enablePin: true,
+            schemaVersion: UserLocalStorage.NOTE_SCHEMA_VERSION
+        };
     }
 
     static isEmptyNoteContent(content) {

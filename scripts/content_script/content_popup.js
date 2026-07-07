@@ -12,7 +12,7 @@ class SimpleShadowDOM {
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
                 </button>
-                <span class="heading" contenteditable="true">Stick it</span>
+                <span class="heading">Stick it</span>
                 <div class="dropdown">
                     <button id="options" class="note-action options" type="button" aria-label="Note color">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">

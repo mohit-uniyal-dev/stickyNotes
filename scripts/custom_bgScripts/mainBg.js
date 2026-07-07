@@ -1,38 +1,13 @@
 
 
-const getNoteData = (url) => {
-    // get date and time 
-    const now = new Date();
-    const dateStr = now.toLocaleDateString();
-    const timeStr = now.toLocaleTimeString();
-    const hostName = new URL(url).hostname
-    const timestamp = now.getTime(); // High-resolution timestamp
-    const randomComponent = Math.random().toString(36).substring(2, 15); // Random string
-    const uniqueId = `${timestamp}-${randomComponent}`; // Combine timestamp and random string
-    const title = 'Title'
-    const enablePin = true
-
-    return {
-        id: uniqueId,
-        date: dateStr,
-        time: timeStr,
-        hostName: hostName,
-        url: url,
-        content: '',
-        title: title,
-        enablePin: enablePin
-    };
-}
-
-
 // one way communication between background and content script
 chrome.runtime.onMessage.addListener(
     async function (request, sender, sendResponse) {
 
         if (request.action == "storeNoteData") {
 
-            // get id 
-            const noteData = getNoteData(request.url)
+            // get id
+            const noteData = UserLocalStorage.createNote(request.url)
 
             // send request 
             sendResponse({ noteData: noteData });

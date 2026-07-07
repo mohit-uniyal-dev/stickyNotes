@@ -262,26 +262,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*                          END                      */
 
-    // get data time 
-    function getDateAndTime() {
-        const now = new Date();
-        const dateStr = now.toLocaleDateString();
-        const timeStr = now.toLocaleTimeString();
-        const timestamp = now.getTime(); // High-resolution timestamp
-        const randomComponent = Math.random().toString(36).substring(2, 15); // Random string
-        const uniqueId = `${timestamp}-${randomComponent}`; // Combine timestamp and random string
-        const pin = false
-
-        return {
-            id: uniqueId,
-            date: dateStr,
-            time: timeStr,
-            hostName: hostName,
-            url: url,
-            content: '',
-            enablePin: true
-        };
-    }
 
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const popupTrashIconPaths = [
@@ -457,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
             var activeTab = tabs[0];
-            const noteData = getDateAndTime()
+            const noteData = UserLocalStorage.createNote(url)
             chrome.tabs.sendMessage(activeTab.id, { "message": "start", "noteData": noteData }, async function (response) {
                 if (response && response.status === "success") {
                     // update the data in loaclstorage

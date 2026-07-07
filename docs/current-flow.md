@@ -265,12 +265,15 @@ At startup, `tab.js`:
 4. Selects the first hostname by default.
 5. Renders all notes for the selected hostname in the main area.
 6. Wires search, navigation, edit, delete, delete-all-host, grid toggle, refresh, and sidebar collapse events.
+7. Shows empty states when there are no notes or no search matches.
 
 Main page features:
 
 - Sidebar groups notes by hostname.
 - Search filters by hostname or content.
+- Search preserves the selected hostname when it still exists in the filtered results, otherwise it selects the first matching hostname.
 - Matching text is highlighted with `<mark>`.
+- If no hostname is selected, search handling treats the selection as nullable instead of reading from a stale sidebar DOM node.
 - The main area supports grid and list layouts.
 - Notes are editable with a debounced update message to background.
 - Single note delete removes storage and asks all tabs to remove the injected DOM note.

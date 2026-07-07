@@ -17,6 +17,96 @@ const getNotesDataInSideBar = async () => {
     return notesData;
 };
 
+const getSelectedHostName = () => {
+    if (!selectedNoteContainer || !document.body.contains(selectedNoteContainer)) {
+        return null;
+    }
+
+    return selectedNoteContainer.getAttribute('hostName');
+};
+
+const getUniqueHostNotes = (notes) => {
+    const uniqueSet = new Set();
+
+    return notes.filter((note) => {
+        if (uniqueSet.has(note.hostName)) {
+            return false;
+        }
+
+        uniqueSet.add(note.hostName);
+        return true;
+    });
+};
+
+const findSidebarItemByHost = (hostName) => {
+    if (!hostName) {
+        return null;
+    }
+
+    return Array.from(document.querySelectorAll('.noteContainer')).find((noteContainer) => {
+        return noteContainer.getAttribute('hostName') === hostName;
+    }) || null;
+};
+
+const selectSidebarItem = (hostName) => {
+    document.querySelectorAll('.noteContainer.select').forEach((noteContainer) => {
+        noteContainer.classList.remove('select');
+    });
+
+    selectedNoteContainer = findSidebarItemByHost(hostName);
+
+    if (selectedNoteContainer) {
+        selectedNoteContainer.classList.add('select');
+    }
+
+    return selectedNoteContainer;
+};
+
+const createEmptyState = (message) => {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = message;
+    return emptyState;
+};
+
+const renderSidebarEmptyState = (message) => {
+    const sidebarContainer = document.querySelector('.list_notes');
+    sidebarContainer.innerHTML = '';
+    sidebarContainer.appendChild(createEmptyState(message));
+};
+
+const renderMainEmptyState = (message) => {
+    const contentContainer = document.querySelector('.contentContainer');
+    contentContainer.innerHTML = '';
+    contentContainer.appendChild(createEmptyState(message));
+};
+
+const renderMainNotesForHost = (notes, hostName, query = '') => {
+    const contentContainer = document.querySelector('.contentContainer');
+    contentContainer.innerHTML = '';
+
+    if (!hostName) {
+        return;
+    }
+
+    let hasRenderedNotes = false;
+
+    notes.forEach((note) => {
+        if (note.hostName === hostName) {
+            hasRenderedNotes = true;
+            if (query.trim() !== '') {
+                searchAndHighlight(note, query);
+            } else {
+                insertContentInMain(note);
+            }
+        }
+    });
+
+    if (!hasRenderedNotes) {
+        renderMainEmptyState(query.trim() !== '' ? 'No matching notes' : 'No notes saved');
+    }
+};
+
 const sideBar = document.querySelector('#sideBar')
 const stickyNoteSideBar = document.querySelector('.stickyNoteSideBar')
 const sideBarImg = document.querySelector('.open-position')
@@ -268,26 +358,27 @@ const insertContentInMain = (note) => {
 const toggleNoteContainerSelection = () => {
     const noteContainers = document.querySelectorAll('.noteContainer');
 
-    if (noteContainers.length > 0) {
-        // Select the first note container by default
-        selectedNoteContainer = noteContainers[0];
-        selectedNoteContainer.classList.add('select');
+    if (noteContainers.length === 0) {
+        selectedNoteContainer = null;
+        document.querySelector('.contentContainer').innerHTML = '';
+        flag = true;
+        return;
+    }
 
-        const hostName = selectedNoteContainer.getAttribute('hostName');
+    if (noteContainers.length > 0) {
+        const currentHostName = getSelectedHostName();
+        const initialHostName = findSidebarItemByHost(currentHostName)
+            ? currentHostName
+            : noteContainers[0].getAttribute('hostName');
+
+        // Select the first note container by default
+        selectSidebarItem(initialHostName);
+
+        const hostName = getSelectedHostName();
 
         if (flag) {
             UserLocalStorage.retriveNoteData().then(async (storeArr) => {
-                // Filter based on hostName
-                const updateArr = storeArr.filter(note => note.hostName === hostName);
-
-                // Remove everything from the container
-                const contentContainer = document.querySelector('.contentContainer');
-                contentContainer.innerHTML = '';
-
-                // Inject content in main
-                updateArr.forEach(note => {
-                    insertContentInMain(note);
-                });
+                renderMainNotesForHost(storeArr, hostName);
                 eventListenerForEditBtn()
                 eventListenerForDeleteBtn()
 
@@ -328,27 +419,18 @@ const toggleNoteContainerSelection = () => {
 
                 // Get the data from local storage
                 const storeArr = await UserLocalStorage.retriveNoteData();
-                // Filter based on hostName
-                const updateArr = storeArr.filter(note => note.hostName === hostName);
-
-                // Remove everything from the container
-                const contentContainer = document.querySelector('.contentContainer');
-                contentContainer.innerHTML = '';
-
                 // Inject content in main
                 const searchBox = document.getElementById('searchBox');
-                const flag = searchBox.value.trim() === '';
+                const hasEmptySearch = searchBox.value.trim() === '';
 
 
-                if (flag === true) {
-                    updateArr.forEach(note => {
-                        insertContentInMain(note);
-                    });
+                if (hasEmptySearch === true) {
+                    renderMainNotesForHost(storeArr, hostName);
                 } else {
                     insertFilterNote(searchBox.value)
                 }
 
-                flag == true
+                flag = true
             }
             eventListenerForEditBtn()
             eventListenerForDeleteBtn()
@@ -363,17 +445,20 @@ const toggleNoteContainerSelection = () => {
 const insertFilterNote = async (query) => {
 
     const notesData = await getNotesDataInSideBar();
+    const hostName = getSelectedHostName();
+    const contentContainer = document.querySelector('.contentContainer');
+    contentContainer.innerHTML = '';
+
+    if (!hostName) {
+        renderMainEmptyState('Select a site to view matching notes');
+        return;
+    }
 
     const filteredNotes = notesData.filter(note =>
         note.hostName.toLowerCase().includes(query.toLowerCase()) ||
-        note.content.toLowerCase().includes(query.toLowerCase())
+        (note.content || '').toLowerCase().includes(query.toLowerCase())
     );
-    const hostName = selectedNoteContainer.getAttribute('hostName')
-    filteredNotes.forEach(note => {
-        if (note.hostName == hostName) {
-            searchAndHighlight(note, query)
-        }
-    })
+    renderMainNotesForHost(filteredNotes, hostName, query);
 
 
 }
@@ -477,6 +562,7 @@ const searchAndHighlight = (note, query) => {
 
 const filterNotes = async (query) => {
     const notesData = await getNotesDataInSideBar();
+    const previousHostName = getSelectedHostName();
 
     // Clear current notes
     const sidebarContainer = document.querySelector('.list_notes');
@@ -488,36 +574,30 @@ const filterNotes = async (query) => {
     // Filter notes based on query
     const filteredNotes = notesData.filter(note =>
         note.hostName.toLowerCase().includes(query.toLowerCase()) ||
-        note.content.toLowerCase().includes(query.toLowerCase())
+        (note.content || '').toLowerCase().includes(query.toLowerCase())
     );
 
     // Display filtered notes in sidebar and main container
-    const uniqueSet = new Set();
-    const noteArr = filteredNotes.filter(note => {
-        if (uniqueSet.has(note.hostName)) {
-            return false;
-        } else {
-            uniqueSet.add(note.hostName);
-            return true;
-        }
-    });
+    const noteArr = getUniqueHostNotes(filteredNotes);
 
-    const hostName = selectedNoteContainer.getAttribute('hostName');
+    if (noteArr.length === 0) {
+        selectedNoteContainer = null;
+        renderSidebarEmptyState(query.trim() === '' ? 'No notes saved' : 'No matching sites');
+        renderMainEmptyState(query.trim() === '' ? 'No notes saved' : 'No matching notes');
+        flag = false;
+        return;
+    }
 
     noteArr.forEach(note => {
         insertContentInSideBar(note, query);  // Inserting into the sidebar as usual
     });
 
+    const firstMatchingHostName = noteArr.length > 0 ? noteArr[0].hostName : null;
+    const hostName = noteArr.some(note => note.hostName === previousHostName) ? previousHostName : firstMatchingHostName;
+    selectSidebarItem(hostName);
+
     console.log(filteredNotes, 'check filteredNote')
-    filteredNotes.forEach(note => {
-        if (hostName === note.hostName) {
-            if (query.trim() !== '') {
-                searchAndHighlight(note, query);  // Use searchAndHighlight for main container
-            } else {
-                insertContentInMain(note)
-            }
-        }
-    });
+    renderMainNotesForHost(filteredNotes, hostName, query);
 
     flag = false;
     eventListenerForNavigation();
@@ -570,24 +650,22 @@ const handleCardData = async () => {
 
 
     if (notesData) {
+        const noteArr = getUniqueHostNotes(notesData);
 
-        const uniqueSet = new Set()
-
-        const noteArr = notesData.filter(note => {
-            if (uniqueSet.has(note.hostName)) {
-                return false
-            } else {
-                uniqueSet.add(note.hostName);
-                return true;
-            }
-        })
+        if (noteArr.length === 0) {
+            selectedNoteContainer = null;
+            renderSidebarEmptyState('No notes saved');
+            renderMainEmptyState('No notes saved');
+        }
 
         noteArr.forEach(note => {
             //    for side bar 
             insertContentInSideBar(note)
         });
 
-        toggleNoteContainerSelection()
+        if (noteArr.length > 0) {
+            toggleNoteContainerSelection()
+        }
 
         document.addEventListener('click', (event) => {
             if (event.target.classList.contains('navigate')) {

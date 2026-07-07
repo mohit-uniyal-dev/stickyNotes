@@ -173,6 +173,27 @@ svg {
   scrollbar-gutter: stable;
 }
 
+.empty-state {
+  align-items: center;
+  background: var(--sn-surface-raised);
+  border: 1px dashed var(--sn-border);
+  border-radius: var(--sn-radius-md);
+  color: var(--sn-text-muted);
+  display: flex;
+  font-size: 14px;
+  justify-content: center;
+  line-height: 1.4;
+  min-height: 72px;
+  padding: 16px;
+  text-align: center;
+  width: 100%;
+}
+
+.contentContainer > .empty-state {
+  min-height: 140px;
+  max-width: 420px;
+}
+
 .cards {
   display: none;
   gap: 10px;

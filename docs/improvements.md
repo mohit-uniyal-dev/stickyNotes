@@ -20,18 +20,11 @@ The following broad UI work has been completed and should not be treated as pend
 - Replaced All Notes search highlighting with safe text-node and `<mark>` construction, removing the unescaped `new RegExp(query, 'gi')` path.
 - Standardized pinned-note restore behavior so content-script injection and completed tab loads both restore only pinned notes for the exact page URL.
 - Fixed unsupported-page popup state so completed supported tab loads explicitly reset the action popup back to `stickyNotes/stickyNotes.html`.
+- Fixed All Notes search selection handling so filtering works when no site is selected, preserves the selected site when possible, selects the first matching site otherwise, and shows empty states for no notes or no matches.
 
 ## High Priority Bugs
 
-### 1. All Notes search can crash when nothing is selected
-
-`tab.js` uses `selectedNoteContainer.getAttribute(...)` during filtering. If the current selection has been cleared or no notes exist, search can throw.
-
-Recommended fix:
-
-- Treat selected host as nullable.
-- If no host is selected, either render all filtered results or select the first available result.
-- Add empty states for no notes and no search matches.
+No high-priority bugs are currently tracked.
 
 ## Data And State Issues
 
@@ -324,8 +317,7 @@ Recommended fix:
 
 ## Suggested Implementation Order
 
-1. Fix correctness and safety issues: nullable All Notes selection.
-2. Make storage helpers Promise-based and centralize all note mutations.
-3. Refactor large files into store/model/render/controller layers.
-4. Add unit tests around note mutation and filtering.
-5. Add a manual smoke-test checklist to release workflow.
+1. Make storage helpers Promise-based and centralize all note mutations.
+2. Refactor large files into store/model/render/controller layers.
+3. Add unit tests around note mutation and filtering.
+4. Add a manual smoke-test checklist to release workflow.

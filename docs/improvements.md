@@ -14,20 +14,11 @@ The following broad UI work has been completed and should not be treated as pend
 - Updated the full "All Notes" page UI in `stickyNote_html_page/index.html`, `styles/index.css`, and the generated templates in `scripts/custom_script/tab.js`.
 - Added themed clean tooltip styling.
 - Removed the old global `.select` style that was causing cross-surface visual conflicts.
+- Fixed popup active-tab initialization so host-scoped actions wait for `hostName` and `url` before Add Note, Remove All, and initial host-specific rendering run.
 
 ## High Priority Bugs
 
-### 1. Popup remove-all can use `hostName` before it is initialized
-
-In `stickyNotes/stickyNotes.js`, the remove-all click handler is registered (around line 22) before `url` and `hostName` are declared (around lines 40-41) and before they are populated by `chrome.tabs.query` (which resolves asynchronously). The handler closes over `hostName`, so it does not throw a temporal dead zone error at click time, but `hostName` can still be the empty string if the user acts before the `chrome.tabs.query` callback runs. Remove-all would then message the background with an empty `hostName`.
-
-Recommended fix:
-
-- Declare `url` and `hostName` before any handler that reads them.
-- Initialize them with `chrome.tabs.query` before enabling UI actions.
-- Disable Add/Remove controls until the active tab context is ready.
-
-### 2. Duplicate `id="pin"` breaks popup pin behavior
+### 1. Duplicate `id="pin"` breaks popup pin behavior
 
 Each rendered popup card contains a button with `id="pin"`, then `document.querySelector('#pin')` is used to wire the listener. Only the first matching element is selected, so cards can receive incorrect pin behavior or no handler.
 
@@ -37,7 +28,7 @@ Recommended fix:
 - Scope queries to the card: `card.querySelector('.pin-btn')`.
 - Use `data-note-id` instead of custom attributes like `uniqueId`.
 
-### 3. Note content is still inserted with `innerHTML` in some extension-page flows
+### 2. Note content is still inserted with `innerHTML` in some extension-page flows
 
 Some extension page paths still build dynamic UI with HTML strings and use `innerHTML`, especially in `stickyNotes.js` and `tab.js`. The injected Shadow DOM note renderer in `content_popup.js` now places note content with `textContent`, but the popup and All Notes page still need a broader rendering cleanup. Since note content is user-editable and persisted, any remaining `innerHTML` paths can allow markup injection into extension UI.
 
@@ -47,7 +38,7 @@ Recommended fix:
 - Preserve line breaks with CSS `white-space: pre-wrap`.
 - If rich text is required, sanitize content with a trusted sanitizer before rendering.
 
-### 4. Search builds unescaped regular expressions
+### 3. Search builds unescaped regular expressions
 
 `tab.js` creates `new RegExp(query, 'gi')` directly from user input. Special regex characters can throw errors or produce unexpected matches.
 
@@ -56,7 +47,7 @@ Recommended fix:
 - Escape regex metacharacters before creating a `RegExp`.
 - Wrap search filtering in defensive handling so the page does not break on invalid input.
 
-### 5. Pinned note restore logic is inconsistent
+### 4. Pinned note restore logic is inconsistent
 
 `tabListner.js` restores pinned notes in two different ways:
 
@@ -71,7 +62,7 @@ Recommended fix:
 - Apply the same filter everywhere.
 - If both scopes are needed, add an explicit `scope` field such as `"page"` or `"host"`.
 
-### 6. Unsupported page handling does not reset the popup
+### 5. Unsupported page handling does not reset the popup
 
 `tabListner.js` sets `chrome.action.setPopup` to `error.html` for unsupported pages, but there is no clear reset to the normal popup when navigating back to supported pages.
 
@@ -80,7 +71,7 @@ Recommended fix:
 - On every supported tab update, explicitly set popup back to `stickyNotes/stickyNotes.html`.
 - Guard all URL parsing because `new URL(tab.url)` can fail for some browser pages or missing URLs.
 
-### 7. All Notes search can crash when nothing is selected
+### 6. All Notes search can crash when nothing is selected
 
 `tab.js` uses `selectedNoteContainer.getAttribute(...)` during filtering. If the current selection has been cleared or no notes exist, search can throw.
 
@@ -380,7 +371,7 @@ Recommended fix:
 
 ## Suggested Implementation Order
 
-1. Fix correctness and safety issues: `hostName` initialization, duplicate pin ids, remaining `innerHTML` user content rendering, regex escaping, and popup reset on supported pages.
+1. Fix correctness and safety issues: duplicate pin ids, remaining `innerHTML` user content rendering, regex escaping, and popup reset on supported pages.
 2. Normalize note scope behavior across popup, content script injection, and tab reloads.
 3. Make storage helpers Promise-based and centralize all note mutations.
 4. Refactor large files into store/model/render/controller layers.

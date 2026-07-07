@@ -14,12 +14,57 @@ document.addEventListener('DOMContentLoaded', function () {
     const removeAllBtn = document.querySelector('.removeAll')
     const title = document.querySelector('#title')
     const seeAllNotes = document.getElementById('seeAllNotes')
+    const settingsBtn = document.getElementById('openTabButton')
+
+    let url = ''
+    let hostName = ''
+    let isActiveTabReady = false
+
     seeAllNotes.innerText = getViewAllNotes()
 
     title.innerText = getHeading()
+    addBtn.disabled = true
+    removeAllBtn.disabled = true
+
+    const setHostScopedActionsEnabled = (isEnabled) => {
+        addBtn.disabled = !isEnabled
+        removeAllBtn.disabled = !isEnabled
+        isActiveTabReady = isEnabled
+    }
+
+    const initActiveTabContext = () => {
+        return new Promise((resolve, reject) => {
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError)
+                    return
+                }
+
+                const activeTab = tabs && tabs[0]
+                if (!activeTab || !activeTab.url) {
+                    reject(new Error('No active tab URL found.'))
+                    return
+                }
+
+                try {
+                    const activeUrl = new URL(activeTab.url)
+                    hostName = activeUrl.hostname
+                    url = activeTab.url
+                    setHostScopedActionsEnabled(Boolean(hostName))
+                    resolve()
+                } catch (error) {
+                    reject(error)
+                }
+            });
+        })
+    }
 
     // remove all btn logic
     removeAllBtn.addEventListener('click', () => {
+        if (!isActiveTabReady || !hostName) {
+            console.warn('Active tab context is not ready. Cannot remove notes.')
+            return
+        }
 
         if (confirm(` ${getDeleteAllMsg()} : ${hostName}`)) {
             document.getElementById('allNotesList').innerHTML = '';
@@ -35,18 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // setLanaguegToEnglish.innerText = getLanguageMessage()
-
-
-    let url = ''
-    let hostName = ''
-
-
-    // query
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        hostName = new URL(tabs[0].url).hostname;
-        url = tabs[0].url;
-
-    });
 
     // handle displaying and inserting card and creating pagination  //
 
@@ -225,11 +258,18 @@ document.addEventListener('DOMContentLoaded', function () {
         // await UserLocalStorage.setStorage(updatedNoteArr)
 
 
-    })().then(() => {
-        retriveData()
-        renderNotes();
-        renderPagination();
-        checkPagination()
+    })().then(async () => {
+        try {
+            await initActiveTabContext()
+            retriveData()
+            renderNotes();
+            renderPagination();
+            checkPagination()
+        } catch (error) {
+            console.warn('Unable to initialize active tab context.', error)
+            setHostScopedActionsEnabled(false)
+            updateNoteLength(0)
+        }
     });
 
     // const sendHideMessage = () => {
@@ -390,6 +430,10 @@ document.addEventListener('DOMContentLoaded', function () {
     /*                         EVENT LISTNER START                      */
     // allow the user to create multiple text areas
     addBtn.addEventListener('click', () => {
+        if (!isActiveTabReady || !hostName || !url) {
+            console.warn('Active tab context is not ready. Cannot add note.')
+            return
+        }
 
         chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
             var activeTab = tabs[0];
@@ -432,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // });
 
 
-    document.getElementById('openTabButton').addEventListener('click', async (e) => {
+    settingsBtn.addEventListener('click', async (e) => {
         console.log('triggered!')
         e.stopPropagation();
         const settingsMenu = document.getElementById('settingsMenu');

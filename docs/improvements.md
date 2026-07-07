@@ -22,6 +22,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Fixed unsupported-page popup state so completed supported tab loads explicitly reset the action popup back to `stickyNotes/stickyNotes.html`.
 - Fixed All Notes search selection handling so filtering works when no site is selected, preserves the selected site when possible, selects the first matching site otherwise, and shows empty states for no notes or no matches.
 - Fixed popup-open note injection so opening the extension icon only re-injects pinned notes for the exact active page URL, not other pinned notes from the same hostname.
+- Fixed storage helper writes so `setStorage`, `deleteNoteData`, `setIsHidden`, and `setIsViewGrid` return Promises, handle `chrome.runtime.lastError`, and key note write flows await completion.
 
 ## High Priority Bugs
 
@@ -39,17 +40,7 @@ Recommended fix:
 - Store host indexes separately if needed.
 - Use one storage update path for all mutations.
 
-### 2. Writes are not consistently awaited
-
-`UserLocalStorage.setStorage` does not return a Promise, but several call sites use `await` on it. That `await` does not wait for `chrome.storage.local.set` to finish.
-
-Recommended fix:
-
-- Update `setStorage`, `deleteNoteData`, `setIsHidden`, and `setIsViewGrid` to return Promises.
-- Handle `chrome.runtime.lastError`.
-- Prefer `chrome.storage.local` promise APIs if target Chrome versions support them.
-
-### 3. Content editing writes directly to storage
+### 2. Content editing writes directly to storage
 
 Injected note editing uses `UpdateData` in `content_eventHandling.js`, which writes directly to `chrome.storage.local`. Other editing flows send messages to background.
 
@@ -59,7 +50,7 @@ Recommended fix:
 - Make content scripts send structured update messages.
 - Keep storage schema updates in one module.
 
-### 4. Empty-note cleanup is spread across multiple paths
+### 3. Empty-note cleanup is spread across multiple paths
 
 Empty notes are removed by close handling, tab close handling, and a commented-out popup cleanup block.
 
@@ -69,7 +60,7 @@ Recommended fix:
 - Decide whether empty notes should be allowed as drafts.
 - Run cleanup only on clear lifecycle events.
 
-### 5. `removeTab` closes by tab title
+### 4. `removeTab` closes by tab title
 
 Background closes tabs whose title equals `"StickyNotes"`, but the full notes page title is `"Stick it - web notes"`. Title matching is fragile and can close unrelated pages if titles match.
 

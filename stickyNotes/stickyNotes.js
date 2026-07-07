@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Remove the note from the array
                             const newArr = noteArr.filter((n) => n !== note);
 
-                            UserLocalStorage.setStorage(newArr)
+                            await UserLocalStorage.setStorage(newArr)
 
                             // remove card
                             card.remove();
@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // update the data in loaclstorage
                     noteArr = await UserLocalStorage.retriveNoteData()
                     noteArr.push(noteData)
-                    chrome.storage.local.set({ notes: noteArr });
+                    await UserLocalStorage.setStorage(noteArr);
                     // inject a add in the extension with the id data 
                     length = length + 1
                     updateNoteLength(length)

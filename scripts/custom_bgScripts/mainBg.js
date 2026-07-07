@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener(
             // update data 
             const noteArr = await UserLocalStorage.retriveNoteData()
             noteArr.push(noteData)
-            chrome.storage.local.set({ notes: noteArr });
+            await UserLocalStorage.setStorage(noteArr);
 
         }
 
@@ -60,20 +60,19 @@ chrome.runtime.onMessage.addListener(
             const noteToFind = StoredNotes.find(note => note.id === id);
 
             // Save the updated array back to local storage
-            chrome.storage.local.set({ notes: newArray }, () => {
+            await UserLocalStorage.setStorage(newArray);
 
-                // Query all tabs to find the one you want to send the message to
-                chrome.tabs.query({}, function (tabs) {
-                    tabs.forEach(tab => {
-                        if (tab.url === noteToFind.url) {
-                            chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: noteToFind.id });
-                        }
-                    });
+            // Query all tabs to find the one you want to send the message to
+            chrome.tabs.query({}, function (tabs) {
+                tabs.forEach(tab => {
+                    if (tab.url === noteToFind.url) {
+                        chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: noteToFind.id });
+                    }
                 });
-
-                // Send a response back if needed
-                sendResponse({ success: true });
             });
+
+            // Send a response back if needed
+            sendResponse({ success: true });
         }
 
 
@@ -102,7 +101,7 @@ chrome.runtime.onMessage.addListener(
                 });
 
                 // upadte in local bg 
-                UserLocalStorage.setStorage(updatedNoteArr);
+                await UserLocalStorage.setStorage(updatedNoteArr);
             }
 
 
@@ -150,7 +149,7 @@ chrome.runtime.onMessage.addListener(
             if (noteIndex !== -1) {
                 // Update the position of the found note
                 allNotes[noteIndex].position = finalPosition;
-                UserLocalStorage.setStorage(allNotes)
+                await UserLocalStorage.setStorage(allNotes)
             }
 
         }
@@ -182,7 +181,7 @@ chrome.runtime.onMessage.addListener(
                     await UserLocalStorage.setStorage(notesArray);
 
                 } else {
-                    UserLocalStorage.setStorage(updatedNotesArray)
+                    await UserLocalStorage.setStorage(updatedNotesArray)
                 }
             }
         }
@@ -203,7 +202,7 @@ chrome.runtime.onMessage.addListener(
                 return note;
             });
             // Store updated value
-            UserLocalStorage.setStorage(updatedNotesArray)
+            await UserLocalStorage.setStorage(updatedNotesArray)
 
 
             const noteArr = await UserLocalStorage.retriveNoteData();

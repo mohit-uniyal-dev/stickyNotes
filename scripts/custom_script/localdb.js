@@ -1,42 +1,62 @@
 class UserLocalStorage {
-    // get note data 
-    static retriveNoteData() {
+    static getStorageValue(key, fallbackValue) {
         return new Promise((resolve, reject) => {
-            chrome.storage.local.get('notes', (result) => {
-
-                if (result.notes) {  // Corrected 'notes' to 'note'
-                    resolve(result.notes);
-                } else {
-                    resolve([]);
+            chrome.storage.local.get(key, (result) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                    return;
                 }
+
+                resolve(Object.prototype.hasOwnProperty.call(result, key) ? result[key] : fallbackValue);
             });
         });
     }
+
+    static setStorageValue(value) {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.set(value, () => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                    return;
+                }
+
+                resolve();
+            });
+        });
+    }
+
+    // get note data 
+    static retriveNoteData() {
+        return this.getStorageValue('notes', []);
+    }
+
     // remove all note data 
     static deleteNoteData(noteId) {
-        chrome.storage.local.clear(() => { });
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.clear(() => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                    return;
+                }
+
+                resolve();
+            });
+        });
     }
 
     // update note data 
     static setStorage(noteArr) {
-        chrome.storage.local.set({ notes: noteArr });
+        return this.setStorageValue({ notes: noteArr });
     }
 
     static setIsHidden(isHidden) {
-        chrome.storage.local.set({ isHidden: isHidden });
+        return this.setStorageValue({ isHidden: isHidden });
     }
 
     static getIsHidden() {
-        return new Promise((resolve, reject) => {
-            chrome.storage.local.get('isHidden', (result) => {
-                if (result.isHidden) {
-                    resolve(result.isHidden)
-                } else {
-                    resolve(false)
-                }
-            })
-        })
+        return this.getStorageValue('isHidden', false);
     }
+
     static removeIsHidden() {
         return new Promise((resolve, reject) => {
             chrome.storage.local.remove('isHidden', () => {
@@ -52,19 +72,11 @@ class UserLocalStorage {
 
 
     static setIsViewGrid(isViewGrid) {
-        chrome.storage.local.set({ isViewGrid: isViewGrid });
+        return this.setStorageValue({ isViewGrid: isViewGrid });
     }
 
     static getIsViewGrid() {
-        return new Promise((resolve, reject) => {
-            chrome.storage.local.get('isViewGrid', (result) => {
-                if (result.isViewGrid) {
-                    resolve(result.isViewGrid)
-                } else {
-                    resolve(true)
-                }
-            })
-        })
+        return this.getStorageValue('isViewGrid', true);
     }
 
 

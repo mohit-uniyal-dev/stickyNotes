@@ -385,7 +385,7 @@ const toggleNoteContainerSelection = () => {
                 const isViewGrid = await UserLocalStorage.getIsViewGrid();
                 const cards = document.querySelectorAll('#Cards');
                 setView(cards);
-                UserLocalStorage.setIsViewGrid(isViewGrid);
+                await UserLocalStorage.setIsViewGrid(isViewGrid);
             });
         }
 
@@ -479,7 +479,7 @@ const eventListenerForDeleteBtn = () => {
 
                     const noteArr = await UserLocalStorage.retriveNoteData()
                     const filerArr = noteArr.filter(note => note.id !== id)
-                    UserLocalStorage.setStorage(filerArr)
+                    await UserLocalStorage.setStorage(filerArr)
 
                     chrome.tabs.query({}, function (tabs) {
                         tabs.forEach(tab => {
@@ -685,11 +685,11 @@ const handleCardData = async () => {
     eventListenerForDeleteBtn()
     eventListenerForDeleteAllHostNote()
 
-    grid[0].addEventListener('click', (event) => {
+    grid[0].addEventListener('click', async (event) => {
         isViewGrid = !isViewGrid;
         const cards = document.querySelectorAll('#Cards')
         setView(cards)
-        UserLocalStorage.setIsViewGrid(isViewGrid)
+        await UserLocalStorage.setIsViewGrid(isViewGrid)
     });
 
     document.getElementById('searchBox').addEventListener('input', (event) => {

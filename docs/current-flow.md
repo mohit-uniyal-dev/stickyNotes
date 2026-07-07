@@ -86,7 +86,7 @@ Additional fields are added later by user interactions:
 - `width` and `height`: saved after resizing a note.
 - `color`: saved after choosing a note color.
 
-Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`.
+Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`. Its read and write helpers return Promises and reject when `chrome.runtime.lastError` is present.
 
 ## Popup Flow
 

@@ -66,50 +66,165 @@ const setView = (cards) => {
         containerEle.classList.add('flex-column', 'align-items-center', 'd-flex');
     }
 }
-// html 
-const createCardsForNote = (note) => {
-    return `
-    <div id="${note.id}"  hostName="${note.hostName}" class="d-flex flex-column border border-light noteContainer">
-        <div data-url="${note.url}" class="note-header url px-3 py-3 d-flex justify-content-between align-items-center">
-            <div id="hostName"  class="cursor-pointer hostName">${note.hostName}</div>
-           <div class="sidebar-card-actions">
-           <svg xmlns="http://www.w3.org/2000/svg" data-url="${note.url}" width="16" height="16" fill="none" class="bi navigation bi-arrow-up-right-square toolTipNav" viewBox="0 0 24 24">
-  <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" class="bi delete-note bi-trash custom-margin-10" viewBox="0 0 24 24">
-                <path d="M9 11v6M15 11v6M4 7h16M10 4h4a1 1 0 0 1 1 1v2H9V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="m6 7 1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-            </svg>
-           </div>
-        </div>
-    </div>
-    `;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const TRASH_ICON_PATHS = [
+    {
+        d: 'M9 11v6M15 11v6M4 7h16M10 4h4a1 1 0 0 1 1 1v2H9V5a1 1 0 0 1 1-1Z',
+        stroke: 'currentColor',
+        'stroke-width': '2',
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round'
+    },
+    {
+        d: 'm6 7 1 13h10l1-13',
+        stroke: 'currentColor',
+        'stroke-width': '2',
+        'stroke-linejoin': 'round'
+    }
+];
+
+const NAVIGATION_ICON_PATHS = [
+    {
+        d: 'M7 17 17 7M9 7h8v8',
+        stroke: 'currentColor',
+        'stroke-width': '2',
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round'
+    }
+];
+
+const createElement = (tagName, className = '') => {
+    const element = document.createElement(tagName);
+    if (className) {
+        element.className = className;
+    }
+    return element;
 };
 
-const TextAreaForNotesHtml = (note) => {
-    let innerText = note.content === '' ? '' : note.content.replace(/\n/g, '<br>');
-    const id = note.id;
+const createSvgIcon = ({ className, paths, attributes = {} }) => {
+    const icon = document.createElementNS(SVG_NS, 'svg');
+    icon.setAttribute('xmlns', SVG_NS);
+    icon.setAttribute('width', '16');
+    icon.setAttribute('height', '16');
+    icon.setAttribute('fill', 'none');
+    icon.setAttribute('class', className);
+    icon.setAttribute('viewBox', '0 0 24 24');
 
-    const cardClass = isViewGrid ? "w-100" : "w-50";
+    Object.entries(attributes).forEach(([name, value]) => {
+        icon.setAttribute(name, value);
+    });
+
+    paths.forEach((pathAttributes) => {
+        const path = document.createElementNS(SVG_NS, 'path');
+        Object.entries(pathAttributes).forEach(([name, value]) => {
+            path.setAttribute(name, value);
+        });
+        icon.appendChild(path);
+    });
+
+    return icon;
+};
+
+const appendHighlightedText = (element, text, query) => {
+    const sourceText = text || '';
+    const searchText = query ? query.trim() : '';
+    element.textContent = '';
+
+    if (!searchText) {
+        element.textContent = sourceText;
+        return;
+    }
+
+    const lowerSource = sourceText.toLowerCase();
+    const lowerSearch = searchText.toLowerCase();
+    let cursor = 0;
+    let matchIndex = lowerSource.indexOf(lowerSearch, cursor);
+
+    while (matchIndex !== -1) {
+        if (matchIndex > cursor) {
+            element.appendChild(document.createTextNode(sourceText.slice(cursor, matchIndex)));
+        }
+
+        const mark = document.createElement('mark');
+        mark.textContent = sourceText.slice(matchIndex, matchIndex + searchText.length);
+        element.appendChild(mark);
+
+        cursor = matchIndex + searchText.length;
+        matchIndex = lowerSource.indexOf(lowerSearch, cursor);
+    }
+
+    if (cursor < sourceText.length) {
+        element.appendChild(document.createTextNode(sourceText.slice(cursor)));
+    }
+};
+
+// html 
+const createCardsForNote = (note, query) => {
+    const noteContainer = createElement('div', 'd-flex flex-column border border-light noteContainer');
+    noteContainer.id = note.id;
+    noteContainer.setAttribute('hostName', note.hostName);
+
+    const header = createElement('div', 'note-header url px-3 py-3 d-flex justify-content-between align-items-center');
+    header.dataset.url = note.url;
+
+    const hostName = createElement('div', 'cursor-pointer hostName');
+    appendHighlightedText(hostName, note.hostName, query);
+
+    const actions = createElement('div', 'sidebar-card-actions');
+    const navigationIcon = createSvgIcon({
+        className: 'bi navigation bi-arrow-up-right-square toolTipNav',
+        paths: NAVIGATION_ICON_PATHS,
+        attributes: { 'data-url': note.url }
+    });
+    const deleteIcon = createSvgIcon({
+        className: 'bi delete-note bi-trash custom-margin-10',
+        paths: TRASH_ICON_PATHS
+    });
+
+    actions.append(navigationIcon, deleteIcon);
+    header.append(hostName, actions);
+    noteContainer.appendChild(header);
+
+    return noteContainer;
+};
+
+const createMainNoteCard = (note, query) => {
+    const id = note.id;
+    const cardClass = isViewGrid ? 'w-100' : 'w-50';
     const colorClass = note.color ? `color-${note.color}` : '';
 
-    return `
-    <div id="Cards" class="${id} card-size ${cardClass} mx-2 my-2">
-        <div class="w-100 heading text-dark px-3 py-2 ${colorClass}">
-            <div class="w-100 d-flex justify-content-between">
-                <div class="note-card-meta">
-                  <span class="px-2">${note.date.replace(/\//g, '-')}</span><span class="px-2">${note.time}</span>
-                </div>
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" unique-id='${id}' width="16" height="16" fill="none" class="bi bi-trash deleteNoteBtn" viewBox="0 0 24 24">
-                     <path d="M9 11v6M15 11v6M4 7h16M10 4h4a1 1 0 0 1 1 1v2H9V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                     <path d="m6 7 1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                   </svg>
-                </div>
-            </div>
-        </div>
-        <div contenteditable="true" uniqueId="${id}" class="textAreaForNotes resize border border-light w-100 bg-transparent text-light p-2">${innerText}</div>
-    </div>`;
+    const card = createElement('div', `${id} card-size ${cardClass} mx-2 my-2`);
+    card.id = 'Cards';
+
+    const heading = createElement('div', `w-100 heading text-dark px-3 py-2 ${colorClass}`);
+    const headingRow = createElement('div', 'w-100 d-flex justify-content-between');
+    const meta = createElement('div', 'note-card-meta');
+
+    const date = createElement('span', 'px-2');
+    date.textContent = note.date.replace(/\//g, '-');
+    const time = createElement('span', 'px-2');
+    time.textContent = note.time;
+    meta.append(date, time);
+
+    const actionContainer = document.createElement('div');
+    const deleteIcon = createSvgIcon({
+        className: 'bi bi-trash deleteNoteBtn',
+        paths: TRASH_ICON_PATHS,
+        attributes: { 'unique-id': id }
+    });
+    actionContainer.appendChild(deleteIcon);
+
+    headingRow.append(meta, actionContainer);
+    heading.appendChild(headingRow);
+
+    const noteBody = createElement('div', 'textAreaForNotes resize border border-light w-100 bg-transparent text-light p-2');
+    noteBody.setAttribute('contenteditable', 'true');
+    noteBody.setAttribute('uniqueId', id);
+    appendHighlightedText(noteBody, note.content, query);
+
+    card.append(heading, noteBody);
+
+    return card;
 };
 
 
@@ -119,24 +234,7 @@ const insertContentInSideBar = (note, query) => {
     console.log(query, 'check query')
 
     const container = document.querySelector('.list_notes');
-    const htmlString = createCardsForNote(note);
-
-    // eventListenerForDeleteBtn()
-
-    // Convert HTML string to DOM node
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlString;
-
-    if (query) {
-        const regex = new RegExp(`(${query})`, 'gi');
-        const hostName = tempDiv.querySelector('#hostName');
-        hostName.innerHTML = hostName.innerHTML.replace(regex, '<mark>$1</mark>');
-    }
-
-    // Append each child of tempDiv to the container
-    while (tempDiv.firstChild) {
-        container.appendChild(tempDiv.firstChild);
-    }
+    container.appendChild(createCardsForNote(note, query));
 
 
 }
@@ -145,14 +243,7 @@ const insertContentInSideBar = (note, query) => {
 const insertContentInMain = (note) => {
     // for content page 
     const container = document.querySelector('.contentContainer');
-    const htmlStr = TextAreaForNotesHtml(note)
-    // converting html string to dom node 
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlStr;
-
-    while (tempDiv.firstChild) {
-        container.appendChild(tempDiv.firstChild);
-    }
+    container.appendChild(createMainNoteCard(note));
 
 
 
@@ -366,22 +457,7 @@ const eventListenerForEditBtn = () => {
 const searchAndHighlight = (note, query) => {
     console.log(note, 'check note')
     const container = document.querySelector('.contentContainer');
-    let htmlStr = TextAreaForNotesHtml(note);
-
-    // Convert HTML string to DOM nodes and insert into the container
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlStr
-
-
-    if (query) {
-        const regex = new RegExp(`(${query})`, 'gi');
-        const textArea = tempDiv.querySelector('.textAreaForNotes');
-        textArea.innerHTML = textArea.innerHTML.replace(regex, '<mark>$1</mark>');
-    }
-
-    while (tempDiv.firstChild) {
-        container.appendChild(tempDiv.firstChild);
-    }
+    container.appendChild(createMainNoteCard(note, query));
 
     // Initialize tooltips for buttons
     tippy('.deleteNoteBtn', {

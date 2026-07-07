@@ -16,29 +16,12 @@ The following broad UI work has been completed and should not be treated as pend
 - Removed the old global `.select` style that was causing cross-surface visual conflicts.
 - Fixed popup active-tab initialization so host-scoped actions wait for `hostName` and `url` before Add Note, Remove All, and initial host-specific rendering run.
 - Fixed popup pin button binding so each generated note card uses a scoped `.pin-btn` control with `data-note-id` instead of duplicate `id="pin"` values.
+- Reworked popup and All Notes note-card rendering so saved note content is inserted with text nodes instead of being parsed through `innerHTML`.
+- Replaced All Notes search highlighting with safe text-node and `<mark>` construction, removing the unescaped `new RegExp(query, 'gi')` path.
 
 ## High Priority Bugs
 
-### 1. Note content is still inserted with `innerHTML` in some extension-page flows
-
-Some extension page paths still build dynamic UI with HTML strings and use `innerHTML`, especially in `stickyNotes.js` and `tab.js`. The injected Shadow DOM note renderer in `content_popup.js` now places note content with `textContent`, but the popup and All Notes page still need a broader rendering cleanup. Since note content is user-editable and persisted, any remaining `innerHTML` paths can allow markup injection into extension UI.
-
-Recommended fix:
-
-- Render user content with `textContent`.
-- Preserve line breaks with CSS `white-space: pre-wrap`.
-- If rich text is required, sanitize content with a trusted sanitizer before rendering.
-
-### 2. Search builds unescaped regular expressions
-
-`tab.js` creates `new RegExp(query, 'gi')` directly from user input. Special regex characters can throw errors or produce unexpected matches.
-
-Recommended fix:
-
-- Escape regex metacharacters before creating a `RegExp`.
-- Wrap search filtering in defensive handling so the page does not break on invalid input.
-
-### 3. Pinned note restore logic is inconsistent
+### 1. Pinned note restore logic is inconsistent
 
 `tabListner.js` restores pinned notes in two different ways:
 
@@ -53,7 +36,7 @@ Recommended fix:
 - Apply the same filter everywhere.
 - If both scopes are needed, add an explicit `scope` field such as `"page"` or `"host"`.
 
-### 4. Unsupported page handling does not reset the popup
+### 2. Unsupported page handling does not reset the popup
 
 `tabListner.js` sets `chrome.action.setPopup` to `error.html` for unsupported pages, but there is no clear reset to the normal popup when navigating back to supported pages.
 
@@ -62,7 +45,7 @@ Recommended fix:
 - On every supported tab update, explicitly set popup back to `stickyNotes/stickyNotes.html`.
 - Guard all URL parsing because `new URL(tab.url)` can fail for some browser pages or missing URLs.
 
-### 5. All Notes search can crash when nothing is selected
+### 3. All Notes search can crash when nothing is selected
 
 `tab.js` uses `selectedNoteContainer.getAttribute(...)` during filtering. If the current selection has been cleared or no notes exist, search can throw.
 
@@ -163,7 +146,8 @@ Recommended refactor:
 Current status:
 
 - The injected note renderer has been improved to use a themed shell and `textContent` for note content.
-- Popup note cards and All Notes page cards still rely on string-built HTML and should be refactored separately.
+- Popup note cards and All Notes page note cards now use DOM construction for dynamic note rendering.
+- Some static shell markup still uses templates, but note data should continue to be inserted through DOM APIs.
 
 ### 4. Normalize naming and spelling
 
@@ -362,7 +346,7 @@ Recommended fix:
 
 ## Suggested Implementation Order
 
-1. Fix correctness and safety issues: remaining `innerHTML` user content rendering, regex escaping, and popup reset on supported pages.
+1. Fix correctness and safety issues: popup reset on supported pages, nullable All Notes selection, and pinned note restore consistency.
 2. Normalize note scope behavior across popup, content script injection, and tab reloads.
 3. Make storage helpers Promise-based and centralize all note mutations.
 4. Refactor large files into store/model/render/controller layers.

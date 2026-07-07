@@ -304,45 +304,88 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const popupTrashIconPaths = [
+        {
+            d: 'M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z'
+        },
+        {
+            d: 'M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z'
+        }
+    ];
+    const popupPinIconPaths = [
+        {
+            d: 'M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146m.122 2.112v-.002zm0-.002v.002a.5.5 0 0 1-.122.51L6.293 6.878a.5.5 0 0 1-.511.12H5.78l-.014-.004a5 5 0 0 0-.288-.076 5 5 0 0 0-.765-.116c-.422-.028-.836.008-1.175.15l5.51 5.509c.141-.34.177-.753.149-1.175a5 5 0 0 0-.192-1.054l-.004-.013v-.001a.5.5 0 0 1 .12-.512l3.536-3.535a.5.5 0 0 1 .532-.115l.096.022c.087.017.208.034.344.034q.172.002.343-.04L9.927 2.028q-.042.172-.04.343a1.8 1.8 0 0 0 .062.46z'
+        }
+    ];
+
+    const createPopupIcon = (className, paths) => {
+        const icon = document.createElementNS(SVG_NS, 'svg');
+        icon.setAttribute('xmlns', SVG_NS);
+        icon.setAttribute('width', '16');
+        icon.setAttribute('height', '16');
+        icon.setAttribute('fill', 'currentColor');
+        icon.setAttribute('class', className);
+        icon.setAttribute('viewBox', '0 0 16 16');
+
+        paths.forEach((pathConfig) => {
+            const path = document.createElementNS(SVG_NS, 'path');
+            path.setAttribute('d', pathConfig.d);
+            icon.appendChild(path);
+        });
+
+        return icon;
+    };
+
     // inject cards for the user 
     const injectCards = (note) => {
         const card = document.createElement('div');
         card.className = 'note-card';
         const pinClass = note.enablePin ? 'selected' : 'disable'
         const dateStr = note.date.replace(/\//g, '-');
-        const content = note.content
         const id = note.id
 
         const colorClass = note.color ? `color-${note.color}` : '';
 
-        card.innerHTML = `
-        <div>
-                <div class="note-header ${colorClass}">
-                    <span> ${dateStr}</span>
-                    <span  class=' cursor-pointer'>
-                    <div class="icons">
-                     <button id="${id}" class="icon-btn delete-btn">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi disbale bi-trash" viewBox="0 0 16 16">
-  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-</svg>
-                     </button>
+        const wrapper = document.createElement('div');
+        const header = document.createElement('div');
+        header.className = `note-header ${colorClass}`;
 
-<button type="button" data-note-id="${id}" class="${pinClass} icon-btn pin-btn" aria-label="Pin note">
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pin-angle " viewBox="0 0 16 16">
-  <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146m.122 2.112v-.002zm0-.002v.002a.5.5 0 0 1-.122.51L6.293 6.878a.5.5 0 0 1-.511.12H5.78l-.014-.004a5 5 0 0 0-.288-.076 5 5 0 0 0-.765-.116c-.422-.028-.836.008-1.175.15l5.51 5.509c.141-.34.177-.753.149-1.175a5 5 0 0 0-.192-1.054l-.004-.013v-.001a.5.5 0 0 1 .12-.512l3.536-3.535a.5.5 0 0 1 .532-.115l.096.022c.087.017.208.034.344.034q.172.002.343-.04L9.927 2.028q-.042.172-.04.343a1.8 1.8 0 0 0 .062.46z"/>
-</svg>
-</button>
-                    </div>
+        const dateLabel = document.createElement('span');
+        dateLabel.textContent = dateStr;
 
-                </div>
-                <div contenteditable="false" class="note-content-container" >${content}</div>
-        </div>
-            `;
+        const actionShell = document.createElement('span');
+        actionShell.className = 'cursor-pointer';
+        const icons = document.createElement('div');
+        icons.className = 'icons';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.id = id;
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'icon-btn delete-btn';
+        deleteBtn.setAttribute('aria-label', 'Delete note');
+        deleteBtn.appendChild(createPopupIcon('bi disbale bi-trash', popupTrashIconPaths));
+
+        const pinBtn = document.createElement('button');
+        pinBtn.type = 'button';
+        pinBtn.dataset.noteId = id;
+        pinBtn.className = `${pinClass} icon-btn pin-btn`;
+        pinBtn.setAttribute('aria-label', 'Pin note');
+        pinBtn.appendChild(createPopupIcon('bi bi-pin-angle', popupPinIconPaths));
+
+        icons.append(deleteBtn, pinBtn);
+        actionShell.appendChild(icons);
+        header.append(dateLabel, actionShell);
+
+        const contentContainer = document.createElement('div');
+        contentContainer.contentEditable = 'false';
+        contentContainer.className = 'note-content-container';
+        contentContainer.textContent = note.content || '';
+
+        wrapper.append(header, contentContainer);
+        card.appendChild(wrapper);
 
         allListContainer.prepend(card);
-
-        const pinBtn = card.querySelector('.pin-btn');
 
 
         pinBtn.addEventListener('click', async (event) => {
@@ -372,7 +415,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         // event listner for delete btn 
-        const deleteBtn = card.querySelector('.delete-btn');
         deleteBtn.addEventListener('click', async () => {
             if (confirm(getDeleteMessage())) {
                 const noteArr = await UserLocalStorage.retriveNoteData()

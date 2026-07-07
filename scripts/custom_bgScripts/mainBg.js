@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener(
             return;
         }
 
-        if (request.action == "storeNoteData") {
+        if (request.action == MESSAGE.STORE_NOTE_DATA) {
 
             if (!isNonEmptyString(request.url)) {
                 console.warn('storeNoteData ignored: missing or invalid url.');
@@ -41,12 +41,12 @@ chrome.runtime.onMessage.addListener(
         }
 
 
-        if (request.action === 'createTabAndInject') {
+        if (request.action === MESSAGE.CREATE_TAB_AND_INJECT) {
             chrome.tabs.create({ url: chrome.runtime.getURL('./stickyNote_html_page/index.html') });
         }
 
 
-        if (request.action === 'filterLocalStorage') {
+        if (request.action === MESSAGE.FILTER_LOCAL_STORAGE) {
             const id = request.id;
 
             if (!isNonEmptyString(id)) {
@@ -73,7 +73,7 @@ chrome.runtime.onMessage.addListener(
             chrome.tabs.query({}, function (tabs) {
                 tabs.forEach(tab => {
                     if (tab.url === noteToFind.url) {
-                        chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: noteToFind.id });
+                        chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteToFind.id });
                     }
                 });
             });
@@ -83,7 +83,7 @@ chrome.runtime.onMessage.addListener(
         }
 
 
-        if (request.action === 'updateNoteContent') {
+        if (request.action === MESSAGE.UPDATE_NOTE_CONTENT) {
             const id = request.id
             const updateContent = request.content
 
@@ -111,7 +111,7 @@ chrome.runtime.onMessage.addListener(
 
                     tabs.forEach(tab => {
                         if (tab.url === noteToFind.url) {
-                            chrome.tabs.sendMessage(tab.id, { action: 'updateContentInCard', note: noteToFind });
+                            chrome.tabs.sendMessage(tab.id, { action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: noteToFind });
                         }
                     });
                 });
@@ -120,7 +120,7 @@ chrome.runtime.onMessage.addListener(
 
         }
 
-        if (request.action == "removeUsingHostName") {
+        if (request.action == MESSAGE.REMOVE_USING_HOST_NAME) {
             const hostName = request.hostName
 
             if (!isNonEmptyString(hostName)) {
@@ -141,14 +141,14 @@ chrome.runtime.onMessage.addListener(
                 chrome.tabs.query({}, function (tabs) {
                     tabs.forEach(tab => {
                         if (tab.url === note.url) {
-                            chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: note.id });
+                            chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: note.id });
                         }
                     });
                 });
             })
         }
 
-        if (request.action === "removeTab") {
+        if (request.action === MESSAGE.REMOVE_TAB) {
             // Close the full "All Notes" page by its exact extension URL. Title
             // matching was fragile (the page title is "Stick it - web notes",
             // never "StickyNotes"), so the old check silently matched nothing.
@@ -163,7 +163,7 @@ chrome.runtime.onMessage.addListener(
             });
         }
 
-        if (request.action === 'storePosition') {
+        if (request.action === MESSAGE.STORE_POSITION) {
             const id = request.id
             const finalPosition = request.position
 
@@ -183,7 +183,7 @@ chrome.runtime.onMessage.addListener(
         }
 
 
-        if (request.action === 'updatePin') {
+        if (request.action === MESSAGE.UPDATE_PIN) {
             const isPinEnable = request.isPinEnable
             const noteId = request.id
 
@@ -216,7 +216,7 @@ chrome.runtime.onMessage.addListener(
             await UserLocalStorage.setStorage(updatedNotesArray)
         }
 
-        if (request.action === 'enablePin') {
+        if (request.action === MESSAGE.ENABLE_PIN) {
             const isPinEnable = request.isPinEnable
             const noteId = request.id
 
@@ -247,7 +247,7 @@ chrome.runtime.onMessage.addListener(
                     if (tabs.length > 0) {
                         var activeTab = tabs[0];
                         if (activeTab.id) {
-                            chrome.tabs.sendMessage(activeTab.id, { "message": "injectPopUps", "noteData": note });
+                            chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
                         } else {
                             console.error("No valid tab ID found.");
                         }
@@ -261,7 +261,7 @@ chrome.runtime.onMessage.addListener(
 
         }
 
-        if (request.action === 'StoreAndUpdateWidthAndHeight') {
+        if (request.action === MESSAGE.STORE_AND_UPDATE_SIZE) {
             const id = request.id;
             const width = request.width;
             const height = request.height;
@@ -285,7 +285,7 @@ chrome.runtime.onMessage.addListener(
             }
         }
 
-        if (request.action === 'addSelectedColor') {
+        if (request.action === MESSAGE.ADD_SELECTED_COLOR) {
             const { selectedColor, uniqueId } = request;
 
             if (!isNonEmptyString(uniqueId) || !ALLOWED_NOTE_COLORS.has(selectedColor)) {

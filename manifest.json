@@ -18,6 +18,7 @@
   "content_scripts": [
     {
       "js": [
+        "scripts/custom_script/messageTypes.js",
         "scripts/custom_script/localizedText.js",
         "scripts/content_script/content_script.js",
         "scripts/content_script/draggable.js",

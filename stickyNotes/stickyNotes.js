@@ -68,8 +68,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (confirm(` ${getDeleteAllMsg()} : ${hostName}`)) {
             document.getElementById('allNotesList').innerHTML = '';
-            chrome.runtime.sendMessage({ action: 'removeUsingHostName', hostName: hostName });
-            chrome.runtime.sendMessage({ action: "removeTab", title: "StickyNotes" });
+            chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_USING_HOST_NAME, hostName: hostName });
+            chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
 
             length = 0
             updateNoteLength(length)
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var activeTab = tabs[0];
 
             if (note.hostName === hostName && note.url === url && note.enablePin) {
-                chrome.tabs.sendMessage(activeTab.id, { "message": "injectPopUps", "noteData": note, });
+                chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note, });
             }
         });
     }
@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             await chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
                 var activeTab = tabs[0];
-                chrome.tabs.sendMessage(activeTab.id, { "message": "updatePinInContentScript", "isPinEnable": enablePin, "id": id });
+                chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.UPDATE_PIN_IN_CONTENT_SCRIPT, "isPinEnable": enablePin, "id": id });
             });
 
 
@@ -408,15 +408,15 @@ document.addEventListener('DOMContentLoaded', function () {
                             card.remove();
 
                             // Send a message to the background script to remove the tab
-                            chrome.runtime.sendMessage({ action: "removeTab", title: "StickyNotes" });
+                            chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
 
                             // remove the element from the dom 
                             chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
                                 var activeTab = tabs[0];
-                                chrome.tabs.sendMessage(activeTab.id, { "action": "removeElementFromDom", "id": id });
+                                chrome.tabs.sendMessage(activeTab.id, { "action": MESSAGE.REMOVE_ELEMENT_FROM_DOM, "id": id });
                             });
 
-                            chrome.runtime.sendMessage({ action: "removeTab", title: "StickyNotes" });
+                            chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
 
                             length = length - 1
                             updateNoteLength(length)
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
             var activeTab = tabs[0];
             const noteData = UserLocalStorage.createNote(url)
-            chrome.tabs.sendMessage(activeTab.id, { "message": "start", "noteData": noteData }, async function (response) {
+            chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.START, "noteData": noteData }, async function (response) {
                 if (response && response.status === "success") {
                     // update the data in localstorage
                     noteArr = await UserLocalStorage.retrieveNoteData()
@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     seeAllNotes.addEventListener('click', () => {
-        chrome.runtime.sendMessage({ action: 'createTabAndInject' });
+        chrome.runtime.sendMessage({ action: MESSAGE.CREATE_TAB_AND_INJECT });
         // UserLocalStorage.deleteNoteData()
     });
 

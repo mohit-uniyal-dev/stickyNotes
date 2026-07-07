@@ -19,7 +19,7 @@ const makeDraggable = (element, handle, id, position) => {
     };
 
     const savePosition = (id, position) => {
-        chrome.runtime.sendMessage({ action: "storePosition", id: id, position: position });
+        chrome.runtime.sendMessage({ action: MESSAGE.STORE_POSITION, id: id, position: position });
     };
 
     const debouncedSavePosition = debounce(savePosition, 500); // 500ms delay after the user stops moving

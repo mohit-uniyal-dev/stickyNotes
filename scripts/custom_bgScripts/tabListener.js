@@ -73,14 +73,14 @@ const restorePinnedNotesForTab = async (tab) => {
 
     notesToRestore.forEach((note) => {
         chrome.tabs.sendMessage(tab.id, {
-            message: 'injectPopUps',
+            message: MESSAGE.INJECT_POPUPS,
             noteData: note,
         });
     });
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'contentScriptInjected') {
+    if (request.action === MESSAGE.CONTENT_SCRIPT_INJECTED) {
         restorePinnedNotesForTab(sender.tab).catch((error) => {
             console.warn('Unable to restore pinned StickyNotes after content script injection.', error);
         });

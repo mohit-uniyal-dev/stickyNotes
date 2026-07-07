@@ -23,7 +23,7 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
         chrome.tabs.query({}, function (tabs) {
             tabs.forEach(tab => {
                 removedNotes.forEach(note => {
-                    chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: note.id });
+                    chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: note.id });
                 });
             });
         });

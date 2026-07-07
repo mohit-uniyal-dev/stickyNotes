@@ -5,7 +5,7 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
         // created a code for id and inner html 
         const url = window.location.href
 
-        chrome.runtime.sendMessage({ action: "storeNoteData", url: url }, (response) => {
+        chrome.runtime.sendMessage({ action: MESSAGE.STORE_NOTE_DATA, url: url }, (response) => {
             const id = response.noteData.id
             if (id) {
                 const title = response.noteData.title
@@ -53,7 +53,7 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
                 pin.classList.remove('disable');
             }
             const id = pin.getAttribute('pinId')
-            chrome.runtime.sendMessage({ action: "enablePin", isPinEnable: enablePin, id: id });
+            chrome.runtime.sendMessage({ action: MESSAGE.ENABLE_PIN, isPinEnable: enablePin, id: id });
         })
     }
 
@@ -73,7 +73,7 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
 
         // Send message to the background script
         chrome.runtime.sendMessage({
-            action: 'updatePin',
+            action: MESSAGE.UPDATE_PIN,
             isPinEnable: false, // or true, depending on what you want to set
             id: id
         });
@@ -105,11 +105,11 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
     textArea.addEventListener('input', debounce(() => {
         const noteContent = textArea.innerText;
         chrome.runtime.sendMessage({
-            action: 'updateNoteContent',
+            action: MESSAGE.UPDATE_NOTE_CONTENT,
             id: textArea.id,
             content: noteContent
         });
-        chrome.runtime.sendMessage({ action: "removeTab", title: "StickyNotes" });
+        chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
     }, 500)); // Adjust the delay (in milliseconds) as needed
 
 
@@ -149,7 +149,7 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
                 const uniqueId = event.target.closest('.note-container').getAttribute('uniqueid')
                 console.log(`Selected color is: ${selectedColor} , and uniue id : ${uniqueId}`);
 
-                chrome.runtime.sendMessage({ action: "addSelectedColor", selectedColor: selectedColor, uniqueId: uniqueId });
+                chrome.runtime.sendMessage({ action: MESSAGE.ADD_SELECTED_COLOR, selectedColor: selectedColor, uniqueId: uniqueId });
             }
         })
     }

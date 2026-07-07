@@ -45,6 +45,7 @@ The UI surfaces that have been modernized are:
 - Background service worker: `background.js`.
 - Permissions: `activeTab`, `storage`, and `tabs`.
 - Content scripts on `<all_urls>`:
+  - `scripts/custom_script/messageTypes.js`
   - `scripts/custom_script/localizedText.js`
   - `scripts/content_script/content_script.js`
   - `scripts/content_script/draggable.js`
@@ -55,6 +56,7 @@ The UI surfaces that have been modernized are:
 
 The background service worker imports:
 
+- `scripts/custom_script/messageTypes.js`
 - `scripts/custom_script/localdb.js`
 - `scripts/custom_bgScripts/autoRef.js`
 - `scripts/custom_bgScripts/mainBg.js`

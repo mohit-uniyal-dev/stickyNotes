@@ -170,7 +170,7 @@ const makeResizable = (element, size) => {
         const id = element.getAttribute('uniqueId');
 
         chrome.runtime.sendMessage({
-            action: 'StoreAndUpdateWidthAndHeight',
+            action: MESSAGE.STORE_AND_UPDATE_SIZE,
             id: id,
             width: width,
             height: height,

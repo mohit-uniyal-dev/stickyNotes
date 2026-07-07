@@ -509,7 +509,7 @@ const eventListenerForDeleteBtn = () => {
 
                     chrome.tabs.query({}, function (tabs) {
                         tabs.forEach(tab => {
-                            chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: id });
+                            chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: id });
                         });
                     });
                     toggleNoteContainerSelection()
@@ -535,7 +535,7 @@ const eventListenerForEditBtn = () => {
 
             // Send the updated content to the background script or storage
             chrome.runtime.sendMessage({
-                action: 'updateNoteContent',
+                action: MESSAGE.UPDATE_NOTE_CONTENT,
                 id: id,
                 content: updatedContent
             });
@@ -649,7 +649,7 @@ const eventListenerForDeleteAllHostNote = () => {
                 // remove logic for main container 
                 const contentContainer = document.querySelector('.contentContainer');
                 contentContainer.innerHTML = '';
-                chrome.runtime.sendMessage({ action: "removeUsingHostName", hostName: hostName },);
+                chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_USING_HOST_NAME, hostName: hostName },);
                 toggleNoteContainerSelection()
 
             }

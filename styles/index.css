@@ -264,11 +264,24 @@ svg {
 .navigation,
 .delete-note,
 .deleteNoteBtn {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
   border-radius: var(--sn-radius-sm);
   color: var(--sn-text-muted);
   cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
   padding: 4px;
   transition: background-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+
+.navigation:focus-visible,
+.delete-note:focus-visible,
+.deleteNoteBtn:focus-visible {
+  box-shadow: var(--sn-shadow-ring);
+  outline: none;
 }
 
 .navigation:hover,
@@ -424,9 +437,6 @@ svg {
   letter-spacing: -0.01em;
 }
 
-.deleteNoteBtn {
-  display: block;
-}
 
 .textAreaForNotes {
   background: var(--sn-surface) !important;

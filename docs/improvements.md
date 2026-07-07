@@ -30,6 +30,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Removed the non-functional `contenteditable` heading on injected notes so the title bar no longer implies editing that was never persisted.
 - Hardened the background message boundary: every mutating handler in `mainBg.js` now validates its payload (non-empty ids, string content, finite width/height, position objects, and an allow-listed note color) and ignores malformed or unknown-shaped requests before touching storage. Also fixed two latent null-dereferences uncovered while adding validation (`filterLocalStorage` used `noteToFind.url` without a null check, and `enablePin` could message the content script with an undefined note).
 - Added popup empty, loading, and error states: the note list now shows "Loading notes...", a "no notes on this site yet" empty state, and a "notes cannot be added on this page" message when the active-tab context fails, instead of rendering a blank list.
+- Made the All Notes page action icons (open-in-new-tab, delete-site, delete-note) real keyboard-operable `<button>` controls with `aria-label`s, decorative `aria-hidden` SVGs, and visible focus rings, so they are reachable and operable without a mouse.
 
 ## High Priority Bugs
 
@@ -190,14 +191,13 @@ Recommended fix:
 
 ### 3. Improve accessibility
 
-Several icon controls now have accessible labels after the UI refresh, but accessibility is not complete across generated SVG controls and older event wiring.
+Icon controls across the popup, injected note, and All Notes page now use real `<button>` elements with accessible labels and visible focus states. The remaining gaps are the interactions that are still pointer-only.
 
 Recommended fix:
 
-- Add `aria-label` to icon buttons.
-- Use real `<button type="button">` controls consistently.
-- Add keyboard support for draggable/resizable alternatives where practical.
-- Ensure color choices are not the only state indicator.
+- Add keyboard support for the draggable/resizable note (e.g. move and resize by arrow keys).
+- Make All Notes host cards selectable by keyboard, not just by click.
+- Ensure note category colors are conveyed by more than color alone (e.g. a label or icon).
 
 ## Testing Gaps
 

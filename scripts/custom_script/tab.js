@@ -215,6 +215,26 @@ const createSvgIcon = ({ className, paths, attributes = {} }) => {
     return icon;
 };
 
+// Build a real, keyboard-operable icon button. The interactive class (used by
+// the click handlers and tooltips) lives on the button; the SVG inside is
+// decorative and hidden from assistive tech.
+const createIconButton = ({ className, label, paths, attributes = {}, iconClassName = 'bi' }) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.setAttribute('aria-label', label);
+
+    Object.entries(attributes).forEach(([name, value]) => {
+        button.setAttribute(name, value);
+    });
+
+    const icon = createSvgIcon({ className: iconClassName, paths });
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+
+    return button;
+};
+
 const appendHighlightedText = (element, text, query) => {
     const sourceText = text || '';
     const searchText = query ? query.trim() : '';
@@ -261,14 +281,18 @@ const createCardsForNote = (note, query) => {
     appendHighlightedText(hostName, note.hostName, query);
 
     const actions = createElement('div', 'sidebar-card-actions');
-    const navigationIcon = createSvgIcon({
-        className: 'bi navigation bi-arrow-up-right-square toolTipNav',
+    const navigationIcon = createIconButton({
+        className: 'navigation toolTipNav',
+        label: 'Open this note\'s page in a new tab',
         paths: NAVIGATION_ICON_PATHS,
-        attributes: { 'data-url': note.url }
+        attributes: { 'data-url': note.url },
+        iconClassName: 'bi bi-arrow-up-right-square'
     });
-    const deleteIcon = createSvgIcon({
-        className: 'bi delete-note bi-trash custom-margin-10',
-        paths: TRASH_ICON_PATHS
+    const deleteIcon = createIconButton({
+        className: 'delete-note custom-margin-10',
+        label: 'Delete all notes for this site',
+        paths: TRASH_ICON_PATHS,
+        iconClassName: 'bi bi-trash'
     });
 
     actions.append(navigationIcon, deleteIcon);
@@ -297,10 +321,12 @@ const createMainNoteCard = (note, query) => {
     meta.append(date, time);
 
     const actionContainer = document.createElement('div');
-    const deleteIcon = createSvgIcon({
-        className: 'bi bi-trash deleteNoteBtn',
+    const deleteIcon = createIconButton({
+        className: 'deleteNoteBtn',
+        label: 'Delete note',
         paths: TRASH_ICON_PATHS,
-        attributes: { 'unique-id': id }
+        attributes: { 'unique-id': id },
+        iconClassName: 'bi bi-trash'
     });
     actionContainer.appendChild(deleteIcon);
 
@@ -468,7 +494,7 @@ const eventListenerForDeleteBtn = () => {
 
         deleteBtn.addEventListener('click', async (event) => {
             if (confirm(getDeleteMsg())) {
-                const deleteBtn = event.target
+                const deleteBtn = event.currentTarget
                 // Ensure you're using the correct attribute name
                 const id = deleteBtn.getAttribute('unique-id');
                 // Use querySelector to find the card element with the id
@@ -636,7 +662,7 @@ const eventListenerForNavigation = () => {
         hostElement.addEventListener('click', (event) => {
 
             event.stopPropagation();
-            const url = event.target.getAttribute('data-url');
+            const url = event.currentTarget.getAttribute('data-url');
             if (url) {
                 window.open(url, '_blank');
             }

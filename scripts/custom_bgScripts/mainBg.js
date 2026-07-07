@@ -106,11 +106,14 @@ chrome.runtime.onMessage.addListener(
                 // upadte in local bg
                 await UserLocalStorage.setStorage(updatedNoteArr);
 
-                // updating it into the tab
+                // Push the update to other tabs showing this page, but skip the
+                // tab that originated the edit — echoing its own change back
+                // needlessly re-renders (and can disturb the caret of) the note
+                // being edited.
+                const senderTabId = sender && sender.tab ? sender.tab.id : null;
                 chrome.tabs.query({}, function (tabs) {
-
                     tabs.forEach(tab => {
-                        if (tab.url === noteToFind.url) {
+                        if (tab.url === noteToFind.url && tab.id !== senderTabId) {
                             chrome.tabs.sendMessage(tab.id, { action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: noteToFind });
                         }
                     });
@@ -137,15 +140,17 @@ chrome.runtime.onMessage.addListener(
 
             await UserLocalStorage.setStorage(updateArray)
 
-            newArray.forEach((note) => {
-                chrome.tabs.query({}, function (tabs) {
-                    tabs.forEach(tab => {
+            // Query tabs once and match every removed note against each tab,
+            // instead of scanning all tabs separately for every note.
+            chrome.tabs.query({}, function (tabs) {
+                tabs.forEach(tab => {
+                    newArray.forEach(note => {
                         if (tab.url === note.url) {
                             chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: note.id });
                         }
                     });
                 });
-            })
+            });
         }
 
         if (request.action === MESSAGE.REMOVE_TAB) {

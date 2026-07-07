@@ -37,6 +37,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Clamped the popup note-card preview to two lines with an ellipsis (`-webkit-line-clamp`) and added `overflow-wrap: anywhere`, replacing the fixed `max-height` that sliced text mid-line.
 - Converted injected-note dragging and resizing from mouse events to Pointer Events with pointer capture: adds touch/pen support, removes global `document` listeners, skips drags that begin on the note's control buttons, and persists position/size once on pointer-up (dragging previously saved via a debounced `mousemove`). Added `touch-action: none` to the drag handle and resize handles.
 - Made the All Notes sidebar host cards keyboard-operable: each card is now a focusable `role="button"` with an `aria-label`, an `aria-pressed` state kept in sync with selection, Enter/Space activation (ignoring keys from the nested action buttons), and a visible focus ring.
+- Reduced redundant tab scanning: `removeUsingHostName` now runs one `chrome.tabs.query({})` and matches every removed note against each tab (previously a full tab scan per note), and `updateNoteContent` no longer broadcasts the edit back to the tab that originated it.
 
 ## High Priority Bugs
 
@@ -108,6 +109,11 @@ Recommended fix:
 - Keep note updates scoped to the sender tab when possible.
 - Query narrower filters where possible.
 - Maintain a lightweight URL-to-tab index only if needed.
+
+Current status:
+
+- The worst case — a full tab scan per removed note in `removeUsingHostName` — is fixed, and `updateNoteContent` no longer echoes to the sender tab.
+- The remaining handlers still use a single `chrome.tabs.query({})` per action. Narrowing these with a `url` match pattern was deferred because note URLs can contain characters that are unsafe to embed directly in a match pattern.
 
 ### 2. Avoid full re-render and listener reattachment
 

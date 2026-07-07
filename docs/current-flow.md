@@ -15,6 +15,27 @@ This repository is a Chrome Manifest V3 extension named "Stick it - web notes". 
 - `_locales/` contains Chrome i18n message files.
 - `assets/icons/` contains extension icons.
 
+## Theme And UI Layer
+
+The extension now uses a shared theme layer for the major visible surfaces.
+
+- `styles/theme.css` defines shared design tokens for typography, spacing, radii, shadows, surfaces, borders, text colors, primary actions, warning/danger states, note colors, and light/dark mode.
+- `styles/colorPalette.css` imports `theme.css` and exposes legacy variable aliases such as `--popup-bg`, `--page-bg`, and `--color-red` so older CSS and note color classes continue to work.
+- `stickyNotes/stickyNotes.css` styles the valid-site action popup using the shared tokens.
+- `styles/error.css` styles the unsupported-page popup using the shared tokens.
+- `styles/index.css` styles the full "All Notes" page, including header, sidebar, search, host cards, note cards, grid/list layout, and tooltips.
+- `styles/content_script.css` styles injected Shadow DOM notes with its own token set because injected notes are isolated from extension page CSS.
+
+Theme selection currently follows `prefers-color-scheme`, with explicit `[data-theme="light"]` and `[data-theme="dark"]` token support available for a future manual theme toggle.
+
+The UI surfaces that have been modernized are:
+
+- Valid-site extension popup.
+- Unsupported-page popup.
+- Injected on-page note card.
+- Full "All Notes" page.
+- Shared clean tooltips.
+
 ## Extension Registration
 
 `manifest.json` registers:
@@ -69,7 +90,7 @@ Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script
 
 ## Popup Flow
 
-The popup is implemented by `stickyNotes/stickyNotes.html`, `stickyNotes/stickyNotes.js`, and `stickyNotes/stickyNotes.css`.
+The popup is implemented by `stickyNotes/stickyNotes.html`, `stickyNotes/stickyNotes.js`, and `stickyNotes/stickyNotes.css`. It uses the shared theme tokens from `styles/theme.css` through `styles/colorPalette.css`.
 
 On `DOMContentLoaded`, `stickyNotes.js`:
 
@@ -106,6 +127,8 @@ Popup note cards show:
 - Delete button.
 - Pin/unpin button.
 - Header color if the note has a saved `color`.
+
+The popup shell includes a themed brand mark, settings icon button, primary Add Note action, count row, delete-all action, note cards, and pagination.
 
 Deleting a popup note:
 
@@ -151,11 +174,13 @@ Injected notes are rendered with Shadow DOM by `scripts/content_script/content_p
 
 The main classes and functions are:
 
-- `SimpleShadowDOM.getHtmlTemplate(note)`: returns the note HTML string.
+- `SimpleShadowDOM.getHtmlTemplate(note)`: returns the Shadow DOM note shell HTML string.
 - `SimpleShadowDOM.createPopup(note)`: creates a host element, attaches a shadow root, injects the note template, links `styles/content_script.css`, and wires dragging, resizing, and note events.
-- `createCardAndUpdate(note)`: updates an existing note element if one with the same `id` is already present, otherwise creates a new popup.
+- `createCardAndUpdate(note)`: updates an existing note element if one with the same `id` is already present, otherwise creates a new popup. Injected note content is placed with `textContent`.
 - `makeResizable(element, size)`: applies saved dimensions and stores new dimensions after resizing.
 - `makeDraggable(element, handle, id, position)` (defined in `scripts/content_script/draggable.js`): applies saved position and stores new position after dragging.
+
+The injected note UI is a themed Shadow DOM card with a header toolbar, add/color/pin/close controls, color palette, editable body, empty placeholder, resize handles, persisted position, and persisted size.
 
 The content script listener in `scripts/content_script/content_script.js` handles messages:
 
@@ -252,9 +277,11 @@ Main page features:
 - Navigation icon opens the note URL in a new tab.
 - Refresh icon reloads the All Notes page.
 
+The full page uses the shared theme layer for its app header, toolbar buttons, sidebar, search field, sidebar host cards, collapse control, note cards, note color headers, grid/list display, and hover/selected states.
+
 ## Error Popup Flow
 
-`stickyNote_html_page/error.html` is used when the extension should not operate on a page, such as Chrome internal pages. It displays a short unsupported-page message and an `Open Notes Tab` button.
+`stickyNote_html_page/error.html` is used when the extension should not operate on a page, such as Chrome internal pages. It displays a themed unsupported-page popup with a warning icon, short message, and `Open Notes Tab` button.
 
 `stickyNote_html_page/error.js` sends `createTabAndInject` when the user clicks that button.
 
@@ -271,5 +298,6 @@ The default locale is English. Additional locale folders exist for `ch`, `sp`, `
 - Notes are persisted as one array in `chrome.storage.local`.
 - Pinned notes are automatically injected into webpages.
 - Note content, pin state, color, size, and position can persist.
+- Major UI surfaces share a consistent light/dark theme token system.
 - Most cross-context coordination happens through `chrome.runtime.sendMessage` and `chrome.tabs.sendMessage`.
 - Injected note UI is isolated from webpages with Shadow DOM, while the extension pages use normal DOM.

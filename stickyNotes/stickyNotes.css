@@ -24,11 +24,10 @@ svg {
 .popup-shell {
   background: var(--sn-surface);
   border: 1px solid var(--sn-border);
-  box-shadow: var(--sn-shadow-soft);
   display: grid;
-  gap: var(--sn-space-4);
+  gap: var(--sn-space-5);
   padding: var(--sn-space-5);
-  width: 340px;
+  width: 348px;
 }
 
 #notesContainer {
@@ -69,10 +68,10 @@ svg {
 }
 
 #title {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.15;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
@@ -162,9 +161,16 @@ svg {
   background: var(--sn-surface-raised);
   border: 1px solid var(--sn-border);
   border-radius: var(--sn-radius-md);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--sn-shadow-xs);
   color: var(--sn-text);
   overflow: hidden;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.note-card:hover {
+  border-color: var(--sn-border-strong);
+  box-shadow: var(--sn-shadow-hover);
+  transform: translateY(-1px);
 }
 
 .note-header {
@@ -173,8 +179,9 @@ svg {
   color: var(--sn-text-inverse);
   display: flex;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   justify-content: space-between;
+  letter-spacing: -0.01em;
   padding: var(--sn-space-2) var(--sn-space-3);
 }
 

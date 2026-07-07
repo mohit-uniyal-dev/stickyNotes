@@ -2,6 +2,19 @@
 
 This document lists observed issues, refactoring opportunities, performance updates, and maintainability improvements in the current StickyNotes extension.
 
+## Recently Addressed
+
+The following broad UI work has been completed and should not be treated as pending unless future design changes are requested:
+
+- Added a shared theme layer in `styles/theme.css`.
+- Mapped legacy color variables through `styles/colorPalette.css`.
+- Updated the valid-site popup UI in `stickyNotes/stickyNotes.html` and `stickyNotes/stickyNotes.css`.
+- Updated the unsupported-page popup in `stickyNote_html_page/error.html` and `styles/error.css`.
+- Updated the injected Shadow DOM note UI in `scripts/content_script/content_popup.js` and `styles/content_script.css`.
+- Updated the full "All Notes" page UI in `stickyNote_html_page/index.html`, `styles/index.css`, and the generated templates in `scripts/custom_script/tab.js`.
+- Added themed clean tooltip styling.
+- Removed the old global `.select` style that was causing cross-surface visual conflicts.
+
 ## High Priority Bugs
 
 ### 1. Popup remove-all can use `hostName` before it is initialized
@@ -24,9 +37,9 @@ Recommended fix:
 - Scope queries to the card: `card.querySelector('.pin-btn')`.
 - Use `data-note-id` instead of custom attributes like `uniqueId`.
 
-### 3. Note content is injected with `innerHTML`
+### 3. Note content is still inserted with `innerHTML` in some extension-page flows
 
-Multiple files insert saved note content with `innerHTML`, including `content_popup.js`, `stickyNotes.js`, and `tab.js`. Since note content is user-editable and persisted, this can allow markup injection into extension UI or injected shadow DOM.
+Some extension page paths still build dynamic UI with HTML strings and use `innerHTML`, especially in `stickyNotes.js` and `tab.js`. The injected Shadow DOM note renderer in `content_popup.js` now places note content with `textContent`, but the popup and All Notes page still need a broader rendering cleanup. Since note content is user-editable and persisted, any remaining `innerHTML` paths can allow markup injection into extension UI.
 
 Recommended fix:
 
@@ -165,6 +178,11 @@ Recommended refactor:
 - Use `dataset` for ids and state.
 - Keep SVG icon templates separate from note data.
 
+Current status:
+
+- The injected note renderer has been improved to use a themed shell and `textContent` for note content.
+- Popup note cards and All Notes page cards still rely on string-built HTML and should be refactored separately.
+
 ### 4. Normalize naming and spelling
 
 Examples:
@@ -249,6 +267,7 @@ Recommended fix:
 
 - Load tooltip libraries only in contexts that render tooltips.
 - Consider replacing Bootstrap usage on the All Notes page with smaller local CSS if bundle size matters.
+  The modernized All Notes page now relies mostly on local custom CSS, but Bootstrap is still loaded by `stickyNote_html_page/index.html`.
 
 ## UX And Product Improvements
 
@@ -293,7 +312,7 @@ Recommended fix:
 
 ### 5. Improve accessibility
 
-Many icon buttons are SVG-only without accessible names.
+Several icon controls now have accessible labels after the UI refresh, but accessibility is not complete across generated SVG controls and older event wiring.
 
 Recommended fix:
 
@@ -361,7 +380,7 @@ Recommended fix:
 
 ## Suggested Implementation Order
 
-1. Fix correctness and safety issues: `hostName` initialization, duplicate pin ids, `innerHTML` user content rendering, regex escaping, and popup reset on supported pages.
+1. Fix correctness and safety issues: `hostName` initialization, duplicate pin ids, remaining `innerHTML` user content rendering, regex escaping, and popup reset on supported pages.
 2. Normalize note scope behavior across popup, content script injection, and tab reloads.
 3. Make storage helpers Promise-based and centralize all note mutations.
 4. Refactor large files into store/model/render/controller layers.

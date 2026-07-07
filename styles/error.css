@@ -16,10 +16,9 @@ body {
 .unsupported-popup {
   background: var(--sn-surface);
   border: 1px solid var(--sn-border);
-  box-shadow: var(--sn-shadow-soft);
   display: grid;
-  gap: var(--sn-space-4);
-  padding: var(--sn-space-4);
+  gap: var(--sn-space-5);
+  padding: var(--sn-space-5);
   width: 360px;
 }
 
@@ -49,8 +48,8 @@ body {
 .unsupported-copy h1 {
   color: var(--sn-text);
   font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   line-height: 1.25;
   margin: 0 0 3px;
 }

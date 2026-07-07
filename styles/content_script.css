@@ -1,38 +1,38 @@
 :host {
     --sn-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --sn-radius-sm: 6px;
-    --sn-radius-md: 8px;
-    --sn-radius-lg: 10px;
-    --sn-shadow-soft: 0 18px 44px rgba(15, 23, 42, 0.18);
-    --sn-shadow-ring: 0 0 0 3px rgba(37, 99, 235, 0.18);
+    --sn-radius-sm: 7px;
+    --sn-radius-md: 10px;
+    --sn-radius-lg: 14px;
+    --sn-shadow-soft: 0 20px 48px rgba(10, 11, 13, 0.18), 0 2px 8px rgba(10, 11, 13, 0.08);
+    --sn-shadow-ring: 0 0 0 3px rgba(10, 11, 13, 0.16);
     --sn-surface: #ffffff;
-    --sn-surface-muted: #eef1f5;
-    --sn-border: #d9dee7;
-    --sn-text: #15191f;
-    --sn-text-muted: #5e6877;
-    --sn-primary: #2563eb;
+    --sn-surface-muted: #f4f4f6;
+    --sn-border: #ebebee;
+    --sn-text: #0a0b0d;
+    --sn-text-muted: #6c7079;
+    --sn-primary: #0a0b0d;
     --sn-note-red: #dc2626;
     --sn-note-yellow: #ca8a04;
     --sn-note-green: #16803d;
     --sn-note-grey: #4b5563;
     --sn-note-purple: #7c3aed;
     --sn-note-pink: #db2777;
-    --sn-note-default: #2563eb;
+    --sn-note-default: #0a0b0d;
     --sn-note-title-text: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
     :host {
-        --sn-shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.42);
-        --sn-shadow-ring: 0 0 0 3px rgba(96, 165, 250, 0.24);
-        --sn-surface: #1b1f23;
-        --sn-surface-muted: #2c333a;
-        --sn-border: #363e47;
-        --sn-text: #f4f6f8;
-        --sn-text-muted: #a5afbb;
-        --sn-primary: #60a5fa;
-        --sn-note-default: #60a5fa;
-        --sn-note-title-text: #0b1220;
+        --sn-shadow-soft: 0 22px 52px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.45);
+        --sn-shadow-ring: 0 0 0 3px rgba(245, 246, 247, 0.24);
+        --sn-surface: #141518;
+        --sn-surface-muted: #222429;
+        --sn-border: #26282d;
+        --sn-text: #f5f6f7;
+        --sn-text-muted: #9a9ea6;
+        --sn-primary: #f5f6f7;
+        --sn-note-default: #24262c;
+        --sn-note-title-text: #f5f6f7;
     }
 }
 
@@ -92,8 +92,8 @@ pre {
 .heading {
     color: inherit;
     font-size: 13px !important;
-    font-weight: 800;
-    letter-spacing: 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     line-height: 1.2;
     min-width: 0;
     outline: none;
@@ -189,7 +189,7 @@ pre {
     align-items: center;
     background: var(--sn-surface);
     border-bottom: 1px solid var(--sn-border);
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 8px 18px rgba(10, 11, 13, 0.1);
     display: none;
     gap: 8px;
     justify-content: flex-end;
@@ -298,5 +298,5 @@ svg {
 }
 
 .note-title.color-yellow {
-    color: #15191f;
+    color: #0a0b0d;
 }

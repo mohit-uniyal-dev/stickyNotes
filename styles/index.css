@@ -49,8 +49,8 @@ svg {
   display: flex;
   gap: 12px;
   font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .brand-mark {
@@ -185,6 +185,8 @@ svg {
 .noteContainer:hover {
   background: var(--sn-surface);
   border-color: var(--sn-border-strong) !important;
+  box-shadow: var(--sn-shadow-hover);
+  transform: translateY(-1px);
 }
 
 .noteContainer.select {
@@ -215,7 +217,8 @@ svg {
 .hostName {
   color: var(--sn-text);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -340,12 +343,20 @@ svg {
   background: var(--sn-surface);
   border: 1px solid var(--sn-border);
   border-radius: var(--sn-radius-md);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--sn-shadow-xs);
   color: var(--sn-text);
   height: fit-content !important;
   margin: 0 !important;
   min-width: 0;
   overflow: hidden;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+#Cards:hover,
+.card-size:hover {
+  border-color: var(--sn-border-strong);
+  box-shadow: var(--sn-shadow-soft);
+  transform: translateY(-1px);
 }
 
 #Cards.w-50 {
@@ -372,7 +383,7 @@ svg {
 }
 
 #Cards .heading.color-yellow {
-  color: #15191f !important;
+  color: #0a0b0d !important;
 }
 
 .note-card-meta {
@@ -380,7 +391,8 @@ svg {
   display: flex;
   gap: 10px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .deleteNoteBtn {

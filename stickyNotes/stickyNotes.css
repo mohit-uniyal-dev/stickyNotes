@@ -236,12 +236,15 @@ svg {
 
 .note-content-container {
   color: var(--sn-text-muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   font-size: 13px;
   line-height: 1.4;
-  max-height: 42px;
   overflow: hidden;
+  overflow-wrap: anywhere;
   padding: var(--sn-space-3);
-  white-space: pre-wrap;
 }
 
 .note-content {

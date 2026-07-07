@@ -33,6 +33,9 @@ The following broad UI work has been completed and should not be treated as pend
 - Made the All Notes page action icons (open-in-new-tab, delete-site, delete-note) real keyboard-operable `<button>` controls with `aria-label`s, decorative `aria-hidden` SVGs, and visible focus rings, so they are reachable and operable without a mouse.
 - Normalized naming and spelling: renamed `retriveNoteData`/`retriveData` to `retrieveNoteData`/`retrieveData` across all call sites, renamed `tabListner.js`/`removeTabListner.js` to `tabListener.js`/`removeTabListener.js` (updating the `background.js` imports), and corrected `isSideBarVisiable`/`loaclstorage`/`clove btn` and similar identifiers and comments.
 - Centralized all runtime message names in a shared `scripts/custom_script/messageTypes.js` (`MESSAGE` constants), loaded first in the service worker, content scripts, and every extension page. All sends and receivers now reference the constants instead of raw strings. Values are unchanged, so behavior is identical; verification confirmed no message-name literals remain in live code and every `MESSAGE.*` reference resolves to a definition. (Action/message string *values* were intentionally left as-is to preserve wire compatibility, so the historical `message` vs `action` key split and mixed value casing remain.)
+- Fixed the injected-note caret reset: `createCardAndUpdate` no longer overwrites the note the user is actively editing (`shadowRoot.activeElement`) or performs no-op `textContent` rewrites, so echoed edits and mid-edit re-injections no longer collapse the cursor to the start.
+- Clamped the popup note-card preview to two lines with an ellipsis (`-webkit-line-clamp`) and added `overflow-wrap: anywhere`, replacing the fixed `max-height` that sliced text mid-line.
+- Converted injected-note dragging and resizing from mouse events to Pointer Events with pointer capture: adds touch/pen support, removes global `document` listeners, skips drags that begin on the note's control buttons, and persists position/size once on pointer-up (dragging previously saved via a debounced `mousemove`). Added `touch-action: none` to the drag handle and resize handles.
 
 ## High Priority Bugs
 
@@ -125,17 +128,7 @@ Recommended fix:
 - Pass the loaded array into render helpers.
 - Cache in memory per page and refresh after known mutations.
 
-### 4. Debounce resize and drag final writes more deliberately
-
-Dragging saves through a debounced mousemove handler, while resizing saves only on mouseup. This is acceptable but inconsistent.
-
-Recommended fix:
-
-- Save drag and resize on pointerup.
-- Optionally store intermediate state in memory for smoother UI.
-- Use Pointer Events for mouse, touch, and pen support.
-
-### 5. Lazy-load heavy libraries where needed
+### 4. Lazy-load heavy libraries where needed
 
 Tippy, Popper, and Bootstrap are bundled locally. The popup, All Notes page, and tooltips load them whether every feature is used or not.
 

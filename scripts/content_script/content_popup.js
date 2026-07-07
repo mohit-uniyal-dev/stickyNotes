@@ -139,9 +139,12 @@ const makeResizable = (element, size) => {
         left: element.querySelector('.resize-handle.left'),
     };
 
-    let startX, startY, startWidth, startHeight, startLeft, startTop, direction;
+    let startX, startY, startWidth, startHeight, startLeft, startTop;
+    let direction = null;
+    let activeHandle = null;
 
     const resize = (e) => {
+        if (!direction) return;
         if (direction === 'right') {
             element.style.width = `${startWidth + (e.clientX - startX)}px`;
         } else if (direction === 'bottom') {
@@ -161,9 +164,14 @@ const makeResizable = (element, size) => {
         }
     };
 
-    const stopResize = () => {
-        document.removeEventListener('mousemove', resize);
-        document.removeEventListener('mouseup', stopResize);
+    const stopResize = (e) => {
+        if (!direction) return;
+
+        if (activeHandle && activeHandle.hasPointerCapture(e.pointerId)) {
+            activeHandle.releasePointerCapture(e.pointerId);
+        }
+        direction = null;
+        activeHandle = null;
 
         const width = element.offsetWidth;
         const height = element.offsetHeight;
@@ -178,6 +186,9 @@ const makeResizable = (element, size) => {
     };
 
     const startResize = (e, resizeDirection) => {
+        // Only the primary mouse button starts a resize; touch and pen pass.
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+
         startX = e.clientX;
         startY = e.clientY;
         startWidth = element.offsetWidth;
@@ -185,15 +196,19 @@ const makeResizable = (element, size) => {
         startLeft = element.offsetLeft;
         startTop = element.offsetTop;
         direction = resizeDirection;
+        activeHandle = e.currentTarget;
 
-        document.addEventListener('mousemove', resize);
-        document.addEventListener('mouseup', stopResize);
+        // Capture so move/up keep firing on this handle for the whole gesture.
+        activeHandle.setPointerCapture(e.pointerId);
+        e.preventDefault();
     };
 
-    handles.right.addEventListener('mousedown', (e) => startResize(e, 'right'));
-    handles.bottom.addEventListener('mousedown', (e) => startResize(e, 'bottom'));
-    handles.left.addEventListener('mousedown', (e) => startResize(e, 'left'));
-    handles.top.addEventListener('mousedown', (e) => startResize(e, 'top'));
+    Object.entries(handles).forEach(([resizeDirection, handleEl]) => {
+        handleEl.addEventListener('pointerdown', (e) => startResize(e, resizeDirection));
+        handleEl.addEventListener('pointermove', resize);
+        handleEl.addEventListener('pointerup', stopResize);
+        handleEl.addEventListener('pointercancel', stopResize);
+    });
 };
 
 const addStyleSheetlink = (shadowRoot) => {

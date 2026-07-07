@@ -2,7 +2,7 @@ const makeDraggable = (element, handle, id, position) => {
     const noteId = id;
 
     let isDragging = false;
-    let startX, startY, initialMouseX, initialMouseY;
+    let startX, startY, initialPointerX, initialPointerY;
 
     // Apply the initial position if provided
     if (position) {
@@ -10,55 +10,61 @@ const makeDraggable = (element, handle, id, position) => {
         element.style.top = position.top || '0px';
     }
 
-    const debounce = (func, delay) => {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), delay);
-        };
+    const savePosition = () => {
+        chrome.runtime.sendMessage({
+            action: MESSAGE.STORE_POSITION,
+            id: noteId,
+            position: {
+                left: element.style.left,
+                top: element.style.top
+            }
+        });
     };
 
-    const savePosition = (id, position) => {
-        chrome.runtime.sendMessage({ action: MESSAGE.STORE_POSITION, id: id, position: position });
-    };
+    const pointerDownHandler = (e) => {
+        // Only start on the primary mouse button; touch and pen always pass.
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-    const debouncedSavePosition = debounce(savePosition, 500); // 500ms delay after the user stops moving
+        // Don't hijack clicks on the note's controls (add / options / pin / close).
+        if (e.target.closest('button')) return;
 
-    const mouseDownHandler = (e) => {
         isDragging = true;
         startX = element.offsetLeft;
         startY = element.offsetTop;
-        initialMouseX = e.clientX;
-        initialMouseY = e.clientY;
+        initialPointerX = e.clientX;
+        initialPointerY = e.clientY;
 
-        document.addEventListener('mousemove', mouseMoveHandler);
-        document.addEventListener('mouseup', mouseUpHandler);
+        // Capture the pointer so move/up keep firing on the handle even when
+        // the pointer leaves it, without global document listeners.
+        handle.setPointerCapture(e.pointerId);
 
         e.preventDefault(); // Prevent text selection
     };
 
-    const mouseMoveHandler = (e) => {
+    const pointerMoveHandler = (e) => {
         if (!isDragging) return;
 
-        const dx = e.clientX - initialMouseX;
-        const dy = e.clientY - initialMouseY;
+        const dx = e.clientX - initialPointerX;
+        const dy = e.clientY - initialPointerY;
 
         element.style.left = `${startX + dx}px`;
         element.style.top = `${startY + dy}px`;
-
-        // Reset the debounce timer each time the user moves the element
-        const finalPosition = {
-            left: element.style.left,
-            top: element.style.top
-        };
-        debouncedSavePosition(noteId, finalPosition);
     };
 
-    const mouseUpHandler = () => {
+    const pointerUpHandler = (e) => {
+        if (!isDragging) return;
         isDragging = false;
-        document.removeEventListener('mousemove', mouseMoveHandler);
-        document.removeEventListener('mouseup', mouseUpHandler);
+
+        if (handle.hasPointerCapture(e.pointerId)) {
+            handle.releasePointerCapture(e.pointerId);
+        }
+
+        // Persist once, when the drag actually ends.
+        savePosition();
     };
 
-    handle.addEventListener('mousedown', mouseDownHandler);
+    handle.addEventListener('pointerdown', pointerDownHandler);
+    handle.addEventListener('pointermove', pointerMoveHandler);
+    handle.addEventListener('pointerup', pointerUpHandler);
+    handle.addEventListener('pointercancel', pointerUpHandler);
 };

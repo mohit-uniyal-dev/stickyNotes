@@ -87,6 +87,7 @@ pre {
     grid-template-columns: 32px 1fr auto;
     min-height: 46px;
     padding: 7px 8px;
+    touch-action: none;
 }
 
 .heading {
@@ -217,6 +218,7 @@ pre {
 .resize-handle {
     background: transparent;
     position: absolute;
+    touch-action: none;
     z-index: 1;
 }
 

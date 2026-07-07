@@ -18,25 +18,11 @@ The following broad UI work has been completed and should not be treated as pend
 - Fixed popup pin button binding so each generated note card uses a scoped `.pin-btn` control with `data-note-id` instead of duplicate `id="pin"` values.
 - Reworked popup and All Notes note-card rendering so saved note content is inserted with text nodes instead of being parsed through `innerHTML`.
 - Replaced All Notes search highlighting with safe text-node and `<mark>` construction, removing the unescaped `new RegExp(query, 'gi')` path.
+- Standardized pinned-note restore behavior so content-script injection and completed tab loads both restore only pinned notes for the exact page URL.
 
 ## High Priority Bugs
 
-### 1. Pinned note restore logic is inconsistent
-
-`tabListner.js` restores pinned notes in two different ways:
-
-- On `contentScriptInjected`, it requires hostname, exact URL, and `enablePin`.
-- On tab load completion, it requires only hostname and `enablePin`.
-
-This means pinned notes can appear differently depending on whether the page was loaded, reloaded, or received the initial content-script message.
-
-Recommended fix:
-
-- Define a clear product rule: notes are either page-specific by exact URL or site-wide by hostname.
-- Apply the same filter everywhere.
-- If both scopes are needed, add an explicit `scope` field such as `"page"` or `"host"`.
-
-### 2. Unsupported page handling does not reset the popup
+### 1. Unsupported page handling does not reset the popup
 
 `tabListner.js` sets `chrome.action.setPopup` to `error.html` for unsupported pages, but there is no clear reset to the normal popup when navigating back to supported pages.
 
@@ -45,7 +31,7 @@ Recommended fix:
 - On every supported tab update, explicitly set popup back to `stickyNotes/stickyNotes.html`.
 - Guard all URL parsing because `new URL(tab.url)` can fail for some browser pages or missing URLs.
 
-### 3. All Notes search can crash when nothing is selected
+### 2. All Notes search can crash when nothing is selected
 
 `tab.js` uses `selectedNoteContainer.getAttribute(...)` during filtering. If the current selection has been cleared or no notes exist, search can throw.
 
@@ -346,9 +332,8 @@ Recommended fix:
 
 ## Suggested Implementation Order
 
-1. Fix correctness and safety issues: popup reset on supported pages, nullable All Notes selection, and pinned note restore consistency.
-2. Normalize note scope behavior across popup, content script injection, and tab reloads.
-3. Make storage helpers Promise-based and centralize all note mutations.
-4. Refactor large files into store/model/render/controller layers.
-5. Add unit tests around note mutation and filtering.
-6. Add a manual smoke-test checklist to release workflow.
+1. Fix correctness and safety issues: popup reset on supported pages and nullable All Notes selection.
+2. Make storage helpers Promise-based and centralize all note mutations.
+3. Refactor large files into store/model/render/controller layers.
+4. Add unit tests around note mutation and filtering.
+5. Add a manual smoke-test checklist to release workflow.

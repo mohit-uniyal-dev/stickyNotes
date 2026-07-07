@@ -134,11 +134,14 @@ chrome.runtime.onMessage.addListener(
         }
 
         if (request.action === "removeTab") {
-            const titleToRemove = request.title;
+            // Close the full "All Notes" page by its exact extension URL. Title
+            // matching was fragile (the page title is "Stick it - web notes",
+            // never "StickyNotes"), so the old check silently matched nothing.
+            const allNotesUrl = chrome.runtime.getURL('stickyNote_html_page/index.html');
 
             chrome.tabs.query({}, (tabs) => {
                 tabs.forEach((tab) => {
-                    if (tab.title === titleToRemove) {
+                    if (tab.url === allNotesUrl) {
                         chrome.tabs.remove(tab.id);
                     }
                 });

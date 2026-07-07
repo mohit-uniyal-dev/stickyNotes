@@ -24,7 +24,8 @@ The following broad UI work has been completed and should not be treated as pend
 - Fixed popup-open note injection so opening the extension icon only re-injects pinned notes for the exact active page URL, not other pinned notes from the same hostname.
 - Fixed storage helper writes so `setStorage`, `deleteNoteData`, `setIsHidden`, and `setIsViewGrid` return Promises, handle `chrome.runtime.lastError`, and key note write flows await completion.
 - Routed injected note content edits through the background `updateNoteContent` message so content scripts no longer write note data directly to `chrome.storage.local`.
-- Centralized empty-note cleanup through `UserLocalStorage` helpers and applied the no-empty-drafts policy on note close, tab close, and popup startup cleanup.
+- Centralized empty-note cleanup through `UserLocalStorage` helpers and applied the no-empty-drafts policy on note close and tab close. Popup open no longer deletes empty notes, so a freshly created blank note survives reopening the popup before the user types.
+- Fixed the All Notes tab close flow so `removeTab` targets the full notes page by its exact extension URL (`chrome.runtime.getURL('stickyNote_html_page/index.html')`) instead of the fragile `"StickyNotes"` title match that never matched.
 
 ## High Priority Bugs
 
@@ -41,15 +42,6 @@ Recommended fix:
 - Store notes by id in an object map, for example `notesById`.
 - Store host indexes separately if needed.
 - Use one storage update path for all mutations.
-
-### 2. `removeTab` closes by tab title
-
-Background closes tabs whose title equals `"StickyNotes"`, but the full notes page title is `"Stick it - web notes"`. Title matching is fragile and can close unrelated pages if titles match.
-
-Recommended fix:
-
-- Track the extension tab id when opening the All Notes page.
-- Or query by `chrome.runtime.getURL('stickyNote_html_page/index.html')`.
 
 ## Refactoring Opportunities
 

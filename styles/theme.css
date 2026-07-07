@@ -196,6 +196,16 @@ select {
   transform: translateY(1px);
 }
 
+.sn-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.sn-button-primary:disabled:hover {
+  background: var(--sn-primary);
+}
+
 .sn-button-primary {
   background: var(--sn-primary);
   color: var(--sn-primary-text);

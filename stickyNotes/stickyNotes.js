@@ -234,17 +234,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-    (async function cleanupEmptyNotes() {
-        const removedNotes = await UserLocalStorage.removeAllEmptyNotes();
-
-        removedNotes.forEach(note => {
-            chrome.tabs.query({}, function (tabs) {
-                tabs.forEach(tab => {
-                    chrome.tabs.sendMessage(tab.id, { action: 'removeElementFromDom', id: note.id });
-                });
-            });
-        });
-    })().then(async () => {
+    // Empty notes are cleaned up on note close and tab close, not on popup
+    // open, so a freshly created blank note is not deleted the next time the
+    // popup is opened before the user has typed anything.
+    (async function initPopup() {
         try {
             await initActiveTabContext()
             retriveData()
@@ -256,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setHostScopedActionsEnabled(false)
             updateNoteLength(0)
         }
-    });
+    })();
 
     // const sendHideMessage = () => {
     //     try {

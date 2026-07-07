@@ -120,6 +120,24 @@ svg {
   transform: translateY(1px);
 }
 
+.icon-button:disabled,
+.allNoteBtn:disabled,
+.button:disabled,
+.icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.icon-button:disabled:hover,
+.allNoteBtn:disabled:hover,
+.button:disabled:hover,
+.icon-btn:disabled:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--sn-text-muted);
+}
+
 .add-note-button,
 #add-note {
   min-height: 38px;

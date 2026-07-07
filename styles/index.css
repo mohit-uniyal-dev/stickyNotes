@@ -103,6 +103,14 @@ svg {
   display: grid;
   grid-template-columns: 320px 18px 1fr;
   min-height: 0;
+  transition: grid-template-columns 0.24s ease;
+}
+
+/* When the sidebar is collapsed it shrinks to width:0, but the fixed 320px
+   grid track would otherwise stay reserved and leave an empty gap. Collapse
+   the track itself so the main content reclaims the space. */
+.notes-layout:has(.stickyNoteSideBar.sideBarCloseBtn) {
+  grid-template-columns: 0 18px 1fr;
 }
 
 .stickyNoteSideBar {
@@ -192,7 +200,7 @@ svg {
 .noteContainer.select {
   background: var(--sn-surface-raised);
   border-color: var(--sn-primary) !important;
-  box-shadow: inset 0 0 0 1px var(--sn-primary), 0 0 0 2px var(--sn-primary-soft);
+  box-shadow: var(--sn-shadow-xs);
   color: var(--sn-text) !important;
   filter: none;
 }
@@ -316,11 +324,11 @@ svg {
   background: var(--sn-bg);
   color: var(--sn-text);
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   min-height: 0;
   overflow: auto;
-  padding: 24px;
+  padding: 20px;
 }
 
 .contentContainer.d-flex {
@@ -331,11 +339,11 @@ svg {
   align-content: start;
   box-sizing: border-box;
   display: grid !important;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   justify-items: stretch;
   overflow: auto;
-  padding: 24px;
+  padding: 20px;
 }
 
 #Cards,
@@ -406,13 +414,18 @@ svg {
   font-size: 14px;
   line-height: 1.5;
   max-height: 260px;
-  min-height: 92px;
+  min-height: 64px;
   outline: none;
   overflow: auto;
-  padding: 14px !important;
-  resize: vertical;
+  padding: 12px 14px !important;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Higher specificity than the generic .resize utility — drop the native
+   resize nub; the contenteditable body grows with its content instead. */
+#Cards .textAreaForNotes {
+  resize: none;
 }
 
 .textAreaForNotes:empty::before {

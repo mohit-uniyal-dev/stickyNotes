@@ -31,6 +31,7 @@
   --sn-primary-hover: #1d4ed8;
   --sn-primary-pressed: #1e40af;
   --sn-primary-soft: #dbeafe;
+  --sn-primary-text: #ffffff;
 
   --sn-warning: #d97706;
   --sn-warning-soft: #fff4df;
@@ -67,6 +68,7 @@
     --sn-primary-hover: #93c5fd;
     --sn-primary-pressed: #bfdbfe;
     --sn-primary-soft: #18304f;
+    --sn-primary-text: #0b1220;
 
     --sn-warning: #f59e0b;
     --sn-warning-soft: #3f2b12;
@@ -98,6 +100,7 @@
   --sn-primary-hover: #1d4ed8;
   --sn-primary-pressed: #1e40af;
   --sn-primary-soft: #dbeafe;
+  --sn-primary-text: #ffffff;
 
   --sn-warning: #d97706;
   --sn-warning-soft: #fff4df;
@@ -128,6 +131,7 @@
   --sn-primary-hover: #93c5fd;
   --sn-primary-pressed: #bfdbfe;
   --sn-primary-soft: #18304f;
+  --sn-primary-text: #0b1220;
 
   --sn-warning: #f59e0b;
   --sn-warning-soft: #3f2b12;
@@ -176,7 +180,7 @@ select {
 
 .sn-button-primary {
   background: var(--sn-primary);
-  color: var(--sn-text-inverse);
+  color: var(--sn-primary-text);
 }
 
 .sn-button-primary:hover {

@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             const element = this.getElementById('notesNumber')
             element.innerText = `All Notes ${noteLength}`
-            removeAllBtn.style.display = 'block'
+            removeAllBtn.style.display = 'inline-flex'
         }
 
     }

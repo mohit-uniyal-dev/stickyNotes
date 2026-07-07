@@ -1,188 +1,302 @@
+:host {
+    --sn-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --sn-radius-sm: 6px;
+    --sn-radius-md: 8px;
+    --sn-radius-lg: 10px;
+    --sn-shadow-soft: 0 18px 44px rgba(15, 23, 42, 0.18);
+    --sn-shadow-ring: 0 0 0 3px rgba(37, 99, 235, 0.18);
+    --sn-surface: #ffffff;
+    --sn-surface-muted: #eef1f5;
+    --sn-border: #d9dee7;
+    --sn-text: #15191f;
+    --sn-text-muted: #5e6877;
+    --sn-primary: #2563eb;
+    --sn-note-red: #dc2626;
+    --sn-note-yellow: #ca8a04;
+    --sn-note-green: #16803d;
+    --sn-note-grey: #4b5563;
+    --sn-note-purple: #7c3aed;
+    --sn-note-pink: #db2777;
+    --sn-note-default: #2563eb;
+    --sn-note-title-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :host {
+        --sn-shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.42);
+        --sn-shadow-ring: 0 0 0 3px rgba(96, 165, 250, 0.24);
+        --sn-surface: #1b1f23;
+        --sn-surface-muted: #2c333a;
+        --sn-border: #363e47;
+        --sn-text: #f4f6f8;
+        --sn-text-muted: #a5afbb;
+        --sn-primary: #60a5fa;
+        --sn-note-default: #60a5fa;
+        --sn-note-title-text: #0b1220;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
 pre {
-    margin:  0px !important;
+    margin: 0 !important;
 }
 
 .note-container {
-    background-color: var(--popup-bg);
-    z-index: 9999;
+    background: var(--sn-surface);
+    border: 1px solid var(--sn-border);
+    border-radius: var(--sn-radius-lg);
+    box-shadow: var(--sn-shadow-soft);
+    color: var(--sn-text);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--sn-font-family);
+    height: 280px;
+    left: 50%;
+    min-height: 220px !important;
+    min-width: 280px !important;
+    overflow: hidden;
     position: fixed;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0); /* Combine translate and scale */
-    color: white;
-    border-radius: 5px;
-    width: 5%;
-    height: 30%;
-    min-width: 242px !important;
-    min-height: 278px !important;
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.22s ease-out, opacity 0.22s ease-out, box-shadow 0.16s ease;
+    width: 320px;
+    z-index: 2147483647;
+}
+
+.note-container.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.note-container.close {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+}
+
+.note-title {
+    align-items: center;
+    background: var(--sn-note-default);
+    color: var(--sn-note-title-text);
+    cursor: move;
+    display: grid;
+    flex: 0 0 auto;
+    gap: 8px;
+    grid-template-columns: 32px 1fr auto;
+    min-height: 46px;
+    padding: 7px 8px;
+}
+
+.heading {
+    color: inherit;
+    font-size: 13px !important;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1.2;
+    min-width: 0;
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdown {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+}
+
+.note-action,
+.add-btn,
+.options,
+.pin,
+.close-btn {
+    align-items: center;
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--sn-radius-sm);
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    height: 30px;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    transition: background-color 140ms ease, border-color 140ms ease, opacity 140ms ease, transform 120ms ease;
+    width: 30px;
+}
+
+.note-action:hover,
+.add-btn:hover,
+.options:hover,
+.pin:hover,
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.note-action:focus-visible,
+.add-btn:focus-visible,
+.options:focus-visible,
+.pin:focus-visible,
+.close-btn:focus-visible,
+.textarea:focus-visible {
+    box-shadow: var(--sn-shadow-ring);
+    outline: none;
+}
+
+.note-action:active,
+.add-btn:active,
+.options:active,
+.pin:active,
+.close-btn:active {
+    transform: translateY(1px);
+}
+
+.pin.selected {
+    opacity: 1;
+}
+
+.pin.disable {
+    opacity: 0.45;
+}
+
+.textarea {
+    background: var(--sn-surface);
+    border: none;
+    color: var(--sn-text);
+    flex: 1 1 auto;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 0;
+    outline: none;
+    overflow: auto;
+    padding: 14px;
+    white-space: pre-wrap;
+    width: 100%;
+    word-break: break-word;
+}
+
+.textarea:empty::before {
+    color: var(--sn-text-muted);
+    content: "Write a note...";
+}
+
+.color-palette {
+    align-items: center;
+    background: var(--sn-surface);
+    border-bottom: 1px solid var(--sn-border);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    display: none;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 8px;
+}
+
+.color-btn {
+    border: 2px solid var(--sn-surface);
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px var(--sn-border);
+    cursor: pointer;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+    width: 22px;
+}
+
+.color-btn:hover,
+.color-btn.color-selected {
+    box-shadow: 0 0 0 2px var(--sn-primary);
+    transform: scale(1.08);
 }
 
 .resize-handle {
-    position: absolute;
     background: transparent;
+    position: absolute;
     z-index: 1;
 }
 
 .resize-handle.top {
     cursor: ns-resize;
-    top: -5px; /* Adjust as needed */
+    height: 10px;
     left: 0;
     right: 0;
-    height: 10px;
+    top: -5px;
 }
 
 .resize-handle.right {
     cursor: ew-resize;
-    top: 0;
-    right: -5px; /* Adjust as needed */
-    width: 10px;
     height: 100%;
+    right: -5px;
+    top: 0;
+    width: 10px;
 }
 
 .resize-handle.bottom {
+    bottom: -5px;
     cursor: ns-resize;
-    bottom: -5px; /* Adjust as needed */
+    height: 10px;
     left: 0;
     right: 0;
-    height: 10px;
 }
 
 .resize-handle.left {
     cursor: ew-resize;
-    top: 0;
-    left: -5px; /* Adjust as needed */
-    width: 10px;
     height: 100%;
+    left: -5px;
+    top: 0;
+    width: 10px;
 }
-
-
-
-.options{
-    background-color: transparent;
-    border: none ;
-}
-
-
-.color-palette{
-    display: none;
-    right: 1px;
-    position: absolute;
-    align-items: center;
-    background-color: var(--popup-heading);
-    color: var(--popup-heading-color);
-    cursor: move;
-}
-
-.color-btn {
-    width: 40px;
-    height: 40px;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s ease; /* Smooth hover effect */
-}
-
-.color-btn:hover {
-    transform: scale(1.1); /* Enlarge the button on hover */
-}
-
-.note-container.show {
-    transform: translate(-50%, -50%) scale(1); /* Maintain centering and scale to normal size */
-    opacity: 1;
-}
-.note-container.close {
-    transform: translate(-50%, -50%) scale(0);
-}
-.note-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center ;
-    background-color: var(--popup-heading);
-    color: var(--popup-heading-color);
-    padding: 10px;
-    cursor: move; 
-}
-.add-btn {
-    background: transparent;
-    border: none ;
-}
-.note-content{
-    overflow: hidden;
-}
-.textarea {
-    color: black;
-    outline: none;
-    padding: 10px;
-    border: none;
-    width: auto;
-    overflow: hidden;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow: hidden;
-    height: 85%;
-
-}
-.close-btn{
-    background : transparent ; 
-    border:  none ;  
-}
-
-.bg-transparent{
-     background: transparent;
-}
-
-.pin{
-    border: none ;
-}
-
-.heading{
-    font-size: 14px !important;
-}
-
-.selected {
-    background-color: transparent;
-  }
-
-  
-  .disable {
-    background-color: var(--heading-color);
-    filter: brightness(0.5); 
-  }
 
 svg {
-    width: 16;
-    height: 16;
-    fill: white;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    display: block;
+    flex: 0 0 auto;
 }
 
-
-/* Pressed effect */
- svg:active {
-    transform: scale(0.9); /* Slightly reduce size */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add shadow to simulate depth */
+.bg-transparent {
+    background: transparent;
 }
 
 .color-red {
-    background-color: var(--color-red);
-  }
-  .color-yellow {
-    background-color: var(--color-yellow);
-  }
-  .color-green {
-    background-color: var(--color-green);
-  }
-  .color-grey {
-    background-color: var(--color-grey);
-  }
-  .color-purple {
-    background-color: var(--color-purple);
-  }
-  .color-pink {
-    background-color: var(--color-pink);
-  }
-  .color-default {
-    background-color: var(--color-default);
-  }
+    background-color: var(--sn-note-red);
+}
 
+.color-yellow {
+    background-color: var(--sn-note-yellow);
+}
 
+.color-green {
+    background-color: var(--sn-note-green);
+}
+
+.color-grey {
+    background-color: var(--sn-note-grey);
+}
+
+.color-purple {
+    background-color: var(--sn-note-purple);
+}
+
+.color-pink {
+    background-color: var(--sn-note-pink);
+}
+
+.color-default {
+    background-color: var(--sn-note-default);
+}
+
+.note-title.color-red,
+.note-title.color-green,
+.note-title.color-grey,
+.note-title.color-purple,
+.note-title.color-pink {
+    color: #ffffff;
+}
+
+.note-title.color-yellow {
+    color: #15191f;
+}

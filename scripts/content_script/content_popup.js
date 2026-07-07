@@ -213,7 +213,17 @@ const createCardAndUpdate = (note) => {
         const existingElement = shadowRoot.getElementById(id);
         if (existingElement) {
             elementExists = true;
-            existingElement.textContent = note.content || '';
+
+            // Reassigning textContent collapses the caret to the start of a
+            // contenteditable. When the background echoes this note's own edit
+            // back (or a re-injection arrives mid-edit), skip the element the
+            // user is currently typing in, and skip no-op rewrites, so the
+            // cursor is never reset out from under them.
+            const nextContent = note.content || '';
+            const isBeingEdited = shadowRoot.activeElement === existingElement;
+            if (!isBeingEdited && existingElement.textContent !== nextContent) {
+                existingElement.textContent = nextContent;
+            }
         }
     });
 

@@ -1,0 +1,275 @@
+# StickyNotes Current Flow
+
+This repository is a Chrome Manifest V3 extension named "Stick it - web notes". It lets users create sticky notes on websites, persist those notes in `chrome.storage.local`, re-inject pinned notes into webpages, and manage all saved notes from a separate extension page.
+
+## Project Structure
+
+- `manifest.json` defines the extension entry points, permissions, content scripts, service worker, localization, icons, and web accessible resources.
+- `background.js` loads the background modules with `importScripts`.
+- `stickyNotes/` contains the browser action popup UI.
+- `scripts/content_script/` contains scripts injected into webpages to render, edit, drag, resize, pin, color, and remove sticky notes.
+- `scripts/custom_bgScripts/` contains service worker logic for note creation, note updates, tab coordination, install/update reloads, and cleanup.
+- `stickyNote_html_page/` contains the full-page "All Notes" view and the unsupported-page popup.
+- `scripts/custom_script/` contains shared helpers for storage, localization, tooltips, and the full-page notes view.
+- `styles/` contains popup, injected note, full-page, error page, color palette, and vendored Bootstrap CSS.
+- `_locales/` contains Chrome i18n message files.
+- `assets/icons/` contains extension icons.
+
+## Extension Registration
+
+`manifest.json` registers:
+
+- Manifest version: `3`.
+- Action popup: `stickyNotes/stickyNotes.html`.
+- Background service worker: `background.js`.
+- Permissions: `activeTab`, `storage`, and `tabs`.
+- Content scripts on `<all_urls>`:
+  - `scripts/custom_script/localizedText.js`
+  - `scripts/content_script/content_script.js`
+  - `scripts/content_script/draggable.js`
+  - `scripts/content_script/content_popup.js`
+  - `scripts/content_script/content_eventHandling.js`
+- Content CSS: `styles/colorPalette.css`.
+- Web accessible resources for assets, styles, and extension HTML pages.
+
+The background service worker imports:
+
+- `scripts/custom_script/localdb.js`
+- `scripts/custom_bgScripts/autoRef.js`
+- `scripts/custom_bgScripts/mainBg.js`
+- `scripts/custom_bgScripts/tabListner.js`
+- `scripts/custom_bgScripts/removeTabListner.js`
+
+## Data Model
+
+All notes are stored in `chrome.storage.local` under the `notes` key as a single array.
+
+A note object is created with these core fields:
+
+```js
+{
+  id,
+  date,
+  time,
+  hostName,
+  url,
+  content,
+  enablePin
+}
+```
+
+Additional fields are added later by user interactions:
+
+- `title`: created by background note creation, currently defaulted to `"Title"`.
+- `position`: saved after dragging a note.
+- `width` and `height`: saved after resizing a note.
+- `color`: saved after choosing a note color.
+
+Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`.
+
+## Popup Flow
+
+The popup is implemented by `stickyNotes/stickyNotes.html`, `stickyNotes/stickyNotes.js`, and `stickyNotes/stickyNotes.css`.
+
+On `DOMContentLoaded`, `stickyNotes.js`:
+
+1. Finds popup controls such as Add Note, Remove All, settings menu, All Notes link, and note list.
+2. Reads localized strings through `localizedText.js`.
+3. Queries the active tab and extracts `hostName` and `url`.
+4. Loads all notes from `chrome.storage.local`.
+5. Filters notes by active tab hostname.
+6. Renders up to two notes per page in the popup list.
+7. Builds simple pagination.
+8. Injects any pinned notes for the current hostname into the active tab.
+
+### Add Note
+
+When the user clicks `Add Note`:
+
+1. The popup builds a new note object from the active tab URL and hostname.
+2. It sends a message to the active tab content script:
+
+   ```js
+   { message: "start", noteData }
+   ```
+
+3. The content script creates the sticky note popup in the webpage.
+4. If the content script responds with `status: "success"`, the popup appends the note to `chrome.storage.local.notes`.
+5. The popup re-renders the current hostname note list and pagination.
+
+### Popup Note Cards
+
+Popup note cards show:
+
+- Date.
+- A content preview.
+- Delete button.
+- Pin/unpin button.
+- Header color if the note has a saved `color`.
+
+Deleting a popup note:
+
+1. Confirms with the user.
+2. Removes the note from the storage array.
+3. Removes the popup card.
+4. Sends `removeElementFromDom` to the active tab.
+5. Closes any open All Notes tab by sending `removeTab` with title `"StickyNotes"`.
+6. Re-renders pagination.
+
+Pin/unpin from the popup sends:
+
+```js
+{ message: "updatePinInContentScript", isPinEnable, id }
+```
+
+The content script forwards that to the background as `enablePin` and toggles the note UI.
+
+### Remove All For Current Hostname
+
+The popup remove-all action:
+
+1. Confirms with the user.
+2. Clears the popup list.
+3. Sends `removeUsingHostName` to background.
+4. Closes any All Notes tab.
+5. Sets the popup note count to zero.
+
+The background removes all stored notes with the matching hostname and asks matching tabs to remove those note elements from the DOM.
+
+### Settings Menu
+
+The gear button toggles `#settingsMenu`.
+
+The menu contains:
+
+- `All Notes`: sends `createTabAndInject` to open the full notes page.
+- `Pin` / `Un Pin All`: toggles `enablePin` for all notes on the active hostname through `UserLocalStorage.updateNote`.
+
+## Injected Webpage Note Flow
+
+Injected notes are rendered with Shadow DOM by `scripts/content_script/content_popup.js`.
+
+The main classes and functions are:
+
+- `SimpleShadowDOM.getHtmlTemplate(note)`: returns the note HTML string.
+- `SimpleShadowDOM.createPopup(note)`: creates a host element, attaches a shadow root, injects the note template, links `styles/content_script.css`, and wires dragging, resizing, and note events.
+- `createCardAndUpdate(note)`: updates an existing note element if one with the same `id` is already present, otherwise creates a new popup.
+- `makeResizable(element, size)`: applies saved dimensions and stores new dimensions after resizing.
+- `makeDraggable(element, handle, id, position)` (defined in `scripts/content_script/draggable.js`): applies saved position and stores new position after dragging.
+
+The content script listener in `scripts/content_script/content_script.js` handles messages:
+
+- `start`: creates a new note in the page.
+- `injectPopUps`: injects or updates a pinned note.
+- `removeElementFromDom`: removes a note element by id.
+- `hideStickyNotes`: hides or shows all injected note containers.
+- `updateContentInCard`: updates a note from the full-page All Notes editor.
+- `updatePinInContentScript`: updates pin state and forwards it to background storage.
+
+## Injected Note Interactions
+
+`scripts/content_script/content_eventHandling.js` wires events inside each note shadow root.
+
+Supported interactions:
+
+- Add another note from an existing note's plus button.
+- Toggle color palette from the options button.
+- Save selected note color through background `addSelectedColor`.
+- Pin/unpin note through background `enablePin`.
+- Close note through background `updatePin`.
+- Edit note content with a debounced `input` handler that writes directly to `chrome.storage.local`.
+- Stop keyboard and focus events from bubbling into the host webpage.
+
+Closing a note does not always delete it. The close button sends `updatePin` with `isPinEnable: false`. Background removes the note only if its content is empty; otherwise it saves the note with `enablePin: false`.
+
+## Background Flow
+
+Background logic is split across multiple scripts imported by `background.js`.
+
+### `mainBg.js`
+
+This file handles most runtime messages:
+
+- `storeNoteData`: creates a note object for the sender URL, saves it, and returns it.
+- `createTabAndInject`: opens `stickyNote_html_page/index.html`.
+- `filterLocalStorage`: removes a single note by id and removes it from matching tabs.
+- `updateNoteContent`: updates note content from the All Notes page and sends the updated note to any tab with the same URL.
+- `removeUsingHostName`: removes all notes for a hostname and removes matching DOM elements from tabs.
+- `removeTab`: closes tabs whose title matches the requested title.
+- `storePosition`: saves note drag position.
+- `updatePin`: updates pin state; deletes empty notes when closing them.
+- `enablePin`: updates pin state and re-injects the note into the active tab.
+- `StoreAndUpdateWidthAndHeight`: saves note dimensions.
+- `addSelectedColor`: saves selected note color.
+
+### `tabListner.js`
+
+This file handles note re-injection and unsupported pages.
+
+When a content script sends `contentScriptInjected`, the background:
+
+1. Reads the active tab.
+2. Reads stored notes.
+3. Injects notes that match active hostname, exact active URL, and `enablePin === true`.
+
+When a tab finishes loading, the background:
+
+1. Checks unsupported internal URLs like `chrome://newtab/` and `chrome://extensions/`.
+2. Sets the action popup to `stickyNote_html_page/error.html` for unsupported pages and the All Notes page.
+3. Reads stored notes.
+4. Injects pinned notes matching the hostname.
+
+### `autoRef.js`
+
+On extension install or update, it reloads all open tabs so the content scripts are available immediately.
+
+### `removeTabListner.js`
+
+This file tracks tab URLs in memory. When a tab closes, it removes stored notes for that exact tab URL if their content is empty.
+
+## Full Notes Page Flow
+
+The full notes page is `stickyNote_html_page/index.html`, driven by `scripts/custom_script/tab.js`.
+
+At startup, `tab.js`:
+
+1. Reads the saved grid/list preference from `chrome.storage.local`.
+2. Loads all notes from `chrome.storage.local.notes`.
+3. Builds a sidebar with one card per unique hostname.
+4. Selects the first hostname by default.
+5. Renders all notes for the selected hostname in the main area.
+6. Wires search, navigation, edit, delete, delete-all-host, grid toggle, refresh, and sidebar collapse events.
+
+Main page features:
+
+- Sidebar groups notes by hostname.
+- Search filters by hostname or content.
+- Matching text is highlighted with `<mark>`.
+- The main area supports grid and list layouts.
+- Notes are editable with a debounced update message to background.
+- Single note delete removes storage and asks all tabs to remove the injected DOM note.
+- Host-level delete sends `removeUsingHostName`.
+- Navigation icon opens the note URL in a new tab.
+- Refresh icon reloads the All Notes page.
+
+## Error Popup Flow
+
+`stickyNote_html_page/error.html` is used when the extension should not operate on a page, such as Chrome internal pages. It displays a short unsupported-page message and an `Open Notes Tab` button.
+
+`stickyNote_html_page/error.js` sends `createTabAndInject` when the user clicks that button.
+
+## Localization Flow
+
+`localizedText.js` wraps `chrome.i18n.getMessage` for specific message keys. The popup, tooltip script, and full notes page call these functions to display localized labels, confirmations, and tooltip text.
+
+The default locale is English. Additional locale folders exist for `ch`, `sp`, `fr`, `ja`, and `ge`.
+
+## Current Behavior Summary
+
+- The popup is scoped to the active tab hostname.
+- The full notes page shows notes grouped by hostname.
+- Notes are persisted as one array in `chrome.storage.local`.
+- Pinned notes are automatically injected into webpages.
+- Note content, pin state, color, size, and position can persist.
+- Most cross-context coordination happens through `chrome.runtime.sendMessage` and `chrome.tabs.sendMessage`.
+- Injected note UI is isolated from webpages with Shadow DOM, while the extension pages use normal DOM.

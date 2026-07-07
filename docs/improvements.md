@@ -23,6 +23,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Fixed All Notes search selection handling so filtering works when no site is selected, preserves the selected site when possible, selects the first matching site otherwise, and shows empty states for no notes or no matches.
 - Fixed popup-open note injection so opening the extension icon only re-injects pinned notes for the exact active page URL, not other pinned notes from the same hostname.
 - Fixed storage helper writes so `setStorage`, `deleteNoteData`, `setIsHidden`, and `setIsViewGrid` return Promises, handle `chrome.runtime.lastError`, and key note write flows await completion.
+- Routed injected note content edits through the background `updateNoteContent` message so content scripts no longer write note data directly to `chrome.storage.local`.
 
 ## High Priority Bugs
 
@@ -40,17 +41,7 @@ Recommended fix:
 - Store host indexes separately if needed.
 - Use one storage update path for all mutations.
 
-### 2. Content editing writes directly to storage
-
-Injected note editing uses `UpdateData` in `content_eventHandling.js`, which writes directly to `chrome.storage.local`. Other editing flows send messages to background.
-
-Recommended fix:
-
-- Centralize mutations in background/service-worker handlers.
-- Make content scripts send structured update messages.
-- Keep storage schema updates in one module.
-
-### 3. Empty-note cleanup is spread across multiple paths
+### 2. Empty-note cleanup is spread across multiple paths
 
 Empty notes are removed by close handling, tab close handling, and a commented-out popup cleanup block.
 
@@ -60,7 +51,7 @@ Recommended fix:
 - Decide whether empty notes should be allowed as drafts.
 - Run cleanup only on clear lifecycle events.
 
-### 4. `removeTab` closes by tab title
+### 3. `removeTab` closes by tab title
 
 Background closes tabs whose title equals `"StickyNotes"`, but the full notes page title is `"Stick it - web notes"`. Title matching is fragile and can close unrelated pages if titles match.
 

@@ -80,7 +80,7 @@ chrome.runtime.onMessage.addListener(
             const id = request.id
             const updateContent = request.content
 
-            if (id) {
+            if (id && typeof updateContent === 'string') {
                 const noteArr = await UserLocalStorage.retriveNoteData();
                 const updatedNoteArr = noteArr.map((note) => {
                     if (note.id == id) {
@@ -90,6 +90,13 @@ chrome.runtime.onMessage.addListener(
                 });
 
                 const noteToFind = updatedNoteArr.find(note => note.id === id);
+                if (!noteToFind) {
+                    return true;
+                }
+
+                // upadte in local bg 
+                await UserLocalStorage.setStorage(updatedNoteArr);
+
                 // updating it into the tab 
                 chrome.tabs.query({}, function (tabs) {
 
@@ -99,9 +106,6 @@ chrome.runtime.onMessage.addListener(
                         }
                     });
                 });
-
-                // upadte in local bg 
-                await UserLocalStorage.setStorage(updatedNoteArr);
             }
 
 

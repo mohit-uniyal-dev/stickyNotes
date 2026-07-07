@@ -1,23 +1,4 @@
 
-const UpdateData = (textareaId, noteContent) => {
-
-    chrome.storage.local.get('notes', function (result) {
-        if (result.notes) {
-            const notes = result.notes
-            notes.forEach(element => {
-                const id = element.id
-                if (textareaId == id) {
-                    element.content = noteContent
-                    chrome.storage.local.set({ notes: notes }) // Update the local storage
-                }
-            });
-        }
-    })
-}
-
-
-
-
 const eventListenerForNote = (shadowRoot, container, noteContainer) => {
     // add btn 
     shadowRoot.querySelector('.add-btn').addEventListener('click', async () => {
@@ -123,7 +104,11 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
     // Event listener with debounce
     textArea.addEventListener('input', debounce(() => {
         const noteContent = textArea.innerText;
-        const contentElement = UpdateData(textArea.id, noteContent);
+        chrome.runtime.sendMessage({
+            action: 'updateNoteContent',
+            id: textArea.id,
+            content: noteContent
+        });
         chrome.runtime.sendMessage({ action: "removeTab", title: "StickyNotes" });
     }, 500)); // Adjust the delay (in milliseconds) as needed
 

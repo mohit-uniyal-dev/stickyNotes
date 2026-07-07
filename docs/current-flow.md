@@ -202,7 +202,7 @@ Supported interactions:
 - Save selected note color through background `addSelectedColor`.
 - Pin/unpin note through background `enablePin`.
 - Close note through background `updatePin`.
-- Edit note content with a debounced `input` handler that writes directly to `chrome.storage.local`.
+- Edit note content with a debounced `input` handler that sends `updateNoteContent` to the background.
 - Stop keyboard and focus events from bubbling into the host webpage.
 
 Closing a note does not always delete it. The close button sends `updatePin` with `isPinEnable: false`. Background removes the note only if its content is empty; otherwise it saves the note with `enablePin: false`.
@@ -218,7 +218,7 @@ This file handles most runtime messages:
 - `storeNoteData`: creates a note object for the sender URL, saves it, and returns it.
 - `createTabAndInject`: opens `stickyNote_html_page/index.html`.
 - `filterLocalStorage`: removes a single note by id and removes it from matching tabs.
-- `updateNoteContent`: updates note content from the All Notes page and sends the updated note to any tab with the same URL.
+- `updateNoteContent`: updates note content from the injected note or All Notes page, saves it, and sends the updated note to any tab with the same URL.
 - `removeUsingHostName`: removes all notes for a hostname and removes matching DOM elements from tabs.
 - `removeTab`: closes tabs whose title matches the requested title.
 - `storePosition`: saves note drag position.

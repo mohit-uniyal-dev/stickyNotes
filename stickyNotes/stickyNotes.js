@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
             var activeTab = tabs[0];
 
-            if (note.hostName == hostName) {
+            if (note.hostName === hostName && note.url === url && note.enablePin) {
                 chrome.tabs.sendMessage(activeTab.id, { "message": "injectPopUps", "noteData": note, });
             }
         });
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (noteArr.length > 0) {
 
             noteArr.forEach((element, index) => {
-                if (element.hostName == hostName && element.enablePin) {
+                if (element.hostName === hostName && element.url === url && element.enablePin) {
                     injectPopUps(element)
                 }
             });

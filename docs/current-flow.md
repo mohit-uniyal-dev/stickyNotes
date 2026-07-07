@@ -101,7 +101,7 @@ On `DOMContentLoaded`, `stickyNotes.js`:
 5. Filters notes by active tab hostname.
 6. Renders up to two notes per page in the popup list.
 7. Builds simple pagination.
-8. Injects any pinned notes for the current hostname into the active tab.
+8. Injects only pinned notes that match the active tab hostname and exact active tab URL.
 
 ### Add Note
 

@@ -543,7 +543,7 @@ const eventListenerForDeleteBtn = () => {
 
                     chrome.tabs.query({}, function (tabs) {
                         tabs.forEach(tab => {
-                            chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: id });
+                            sendMessageToTab(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: id });
                         });
                     });
                     toggleNoteContainerSelection()

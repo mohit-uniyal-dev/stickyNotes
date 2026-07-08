@@ -1,5 +1,6 @@
 /**
- * Shared message-name constants for all StickyNotes runtime messaging.
+ * Shared message-name constants and messaging helpers for all StickyNotes
+ * runtime messaging.
  *
  * Every value here is the exact string the code already sends and compares
  * against, so swapping literals for these constants does not change runtime
@@ -42,3 +43,20 @@ const MESSAGE = Object.freeze({
     HIDE_STICKY_NOTES: 'hideStickyNotes',
     UPDATE_PIN_IN_CONTENT_SCRIPT: 'updatePinInContentScript'
 });
+
+/**
+ * Fire-and-forget message to a tab's content script.
+ *
+ * Messaging a tab that has no content script listening — a page still loading,
+ * a restricted page (e.g. the Chrome Web Store), or a tab opened before the
+ * extension loaded — rejects with "Receiving end does not exist". There is
+ * nothing to update on such a page, so this swallows that benign rejection
+ * instead of letting it surface as an unhandled promise rejection.
+ *
+ * Returns the already-caught promise so callers may await it if needed. For
+ * sends that need the response, call `chrome.tabs.sendMessage` with a callback
+ * and check `chrome.runtime.lastError` instead.
+ */
+function sendMessageToTab(tabId, message) {
+    return chrome.tabs.sendMessage(tabId, message).catch(() => { });
+}

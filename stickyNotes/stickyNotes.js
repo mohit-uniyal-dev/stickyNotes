@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var activeTab = tabs[0];
 
             if (note.hostName === hostName && note.url === url && note.enablePin) {
-                chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note, });
+                sendMessageToTab(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
             }
         });
     }
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             await chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
                 var activeTab = tabs[0];
-                chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.UPDATE_PIN_IN_CONTENT_SCRIPT, "isPinEnable": enablePin, "id": id });
+                sendMessageToTab(activeTab.id, { "message": MESSAGE.UPDATE_PIN_IN_CONTENT_SCRIPT, "isPinEnable": enablePin, "id": id });
             });
 
 
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             // remove the element from the dom 
                             chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
                                 var activeTab = tabs[0];
-                                chrome.tabs.sendMessage(activeTab.id, { "action": MESSAGE.REMOVE_ELEMENT_FROM_DOM, "id": id });
+                                sendMessageToTab(activeTab.id, { "action": MESSAGE.REMOVE_ELEMENT_FROM_DOM, "id": id });
                             });
 
                             chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
@@ -462,6 +462,12 @@ document.addEventListener('DOMContentLoaded', function () {
             var activeTab = tabs[0];
             const noteData = UserLocalStorage.createNote(url)
             chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.START, "noteData": noteData }, async function (response) {
+                if (chrome.runtime.lastError) {
+                    // No content script on this page (e.g. still loading or a
+                    // restricted page); the note can't be created there.
+                    console.warn('Cannot add note: no content script on the active tab.')
+                    return;
+                }
                 if (response && response.status === "success") {
                     // update the data in localstorage
                     noteArr = await UserLocalStorage.retrieveNoteData()

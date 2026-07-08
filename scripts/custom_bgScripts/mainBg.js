@@ -73,7 +73,7 @@ chrome.runtime.onMessage.addListener(
             chrome.tabs.query({}, function (tabs) {
                 tabs.forEach(tab => {
                     if (tab.url === noteToFind.url) {
-                        chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteToFind.id });
+                        sendMessageToTab(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteToFind.id });
                     }
                 });
             });
@@ -114,7 +114,7 @@ chrome.runtime.onMessage.addListener(
                 chrome.tabs.query({}, function (tabs) {
                     tabs.forEach(tab => {
                         if (tab.url === noteToFind.url && tab.id !== senderTabId) {
-                            chrome.tabs.sendMessage(tab.id, { action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: noteToFind });
+                            sendMessageToTab(tab.id, { action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: noteToFind });
                         }
                     });
                 });
@@ -146,7 +146,7 @@ chrome.runtime.onMessage.addListener(
                 tabs.forEach(tab => {
                     newArray.forEach(note => {
                         if (tab.url === note.url) {
-                            chrome.tabs.sendMessage(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: note.id });
+                            sendMessageToTab(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: note.id });
                         }
                     });
                 });
@@ -252,7 +252,7 @@ chrome.runtime.onMessage.addListener(
                     if (tabs.length > 0) {
                         var activeTab = tabs[0];
                         if (activeTab.id) {
-                            chrome.tabs.sendMessage(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
+                            sendMessageToTab(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
                         } else {
                             console.error("No valid tab ID found.");
                         }

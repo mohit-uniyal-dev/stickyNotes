@@ -16,6 +16,14 @@ const UNSUPPORTED_PROTOCOLS = new Set([
     'file:'
 ]);
 
+// Pages that are http/https but where Chrome still blocks content-script
+// injection (most notably the Chrome Web Store), so notes cannot work there and
+// the unsupported-page popup should be shown instead of the normal one.
+const RESTRICTED_HOSTS = new Set([
+    'chromewebstore.google.com',
+    'chrome.google.com'
+]);
+
 const getTabUrlContext = (tab) => {
     if (!tab || !tab.url) {
         return null;
@@ -44,11 +52,20 @@ const isPinnedNoteForTab = (note, tabContext) => {
     );
 };
 
+const isRestrictedHost = (tabContext) => {
+    if (RESTRICTED_HOSTS.has(tabContext.hostName)) {
+        return true;
+    }
+    // The legacy Chrome Web Store is served from chrome.google.com/webstore.
+    return tabContext.hostName === 'chrome.google.com' && tabContext.href.includes('/webstore');
+};
+
 const isUnsupportedTab = (tab, tabContext) => {
     return Boolean(
         !tabContext ||
         ERROR_URLS.includes(tabContext.href) ||
         UNSUPPORTED_PROTOCOLS.has(tabContext.protocol) ||
+        isRestrictedHost(tabContext) ||
         (tab && tab.title && tab.title.includes('Stick it - web notes'))
     );
 };
@@ -75,7 +92,7 @@ const restorePinnedNotesForTab = async (tab) => {
     const notesToRestore = noteArr.filter((note) => isPinnedNoteForTab(note, tabContext));
 
     notesToRestore.forEach((note) => {
-        chrome.tabs.sendMessage(tab.id, {
+        sendMessageToTab(tab.id, {
             message: MESSAGE.INJECT_POPUPS,
             noteData: note,
         });

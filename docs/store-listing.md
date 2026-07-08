@@ -71,3 +71,47 @@ listing's "Privacy policy" field:
 Content scripts are limited to `http://*/*` and `https://*/*`. The extension
 does not run on `file://`, browser-internal (`chrome://`), or other privileged
 pages; those show the "notes cannot be added on this page" popup instead.
+
+## Store copy
+
+### Short description (summary, ≤132 chars — matches the manifest)
+
+> Add sticky notes to any web page and pick up right where you left off. Everything stays on your device.
+
+### Detailed description (paste into the store "Description" field)
+
+```text
+Stick it - web notes lets you drop a sticky note on any web page — a reminder, a quote, a to-do, or a bit of research — and find it again right where you left it.
+
+Notes live on the page you created them on. Pin one and it comes back automatically the next time you visit that page, so your notes stay in context instead of getting buried in another app.
+
+WHAT YOU CAN DO
+• Add a note to any website in one click
+• Pin notes so they reappear when you return to the page
+• Drag, resize, and recolor each note (six colors)
+• Minimize notes into a tidy tray to reclaim space, then restore them with a click
+• Manage everything from the All Notes page — search, edit, and delete, grouped by website, in grid or list view
+• Clean, modern design that follows your light or dark theme
+
+PRIVATE BY DESIGN
+Your notes never leave your device. Everything is stored locally in your browser — no account, no servers, no tracking, and no analytics.
+
+GETTING STARTED
+Open Stick it from the toolbar on any site and click "Add Note." That's it.
+```
+
+### What's new — v1.2.0 (release note)
+
+```text
+New
+• Minimize notes — collapse a note into a docked tray in the corner and restore it with a click.
+• A welcome page to help you get started on first install.
+• A refreshed, cleaner look in both light and dark mode.
+• More languages: German, Spanish, French, Japanese, Chinese, Portuguese, and Hindi.
+
+Fixes & improvements
+• The cursor no longer jumps to the start while you type in a note.
+• Notes can no longer be dragged off-screen.
+• Better keyboard navigation and clearer empty states.
+• Faster, more reliable saving, and various stability fixes.
+```

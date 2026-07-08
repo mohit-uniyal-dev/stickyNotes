@@ -63,6 +63,7 @@ The background service worker imports:
 - `scripts/custom_bgScripts/mainBg.js`
 - `scripts/custom_bgScripts/tabListener.js`
 - `scripts/custom_bgScripts/removeTabListener.js`
+- `scripts/custom_bgScripts/uninstallSurvey.js`
 
 ## Data Model
 

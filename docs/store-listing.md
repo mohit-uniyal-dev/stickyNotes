@@ -38,12 +38,18 @@ No. The extension executes no remotely hosted code. All scripts and libraries
 
 ## Data usage / privacy disclosures
 
-- **Does this extension collect or transmit user data off the device?** No. All
-  notes and preferences are stored locally via `chrome.storage.local`. The
+- **Does this extension transmit your notes off the device?** No. All notes and
+  preferences are stored locally via `chrome.storage.local`. During use, the
   extension makes no network requests and contacts no servers or third parties.
 - **Data handled locally (not transmitted):** note text, the URL/hostname a note
   is attached to, note appearance/state (color, position, size, pin, minimize,
   timestamps), and display preferences.
+- **Optional uninstall survey:** on removal, Chrome opens an optional, anonymous
+  feedback survey hosted on Google Forms. The user chooses whether to submit it;
+  the extension attaches no note content, page URLs, or personal identifiers
+  (at most non-identifying technical details such as version/OS). Disclosed in
+  the privacy policy. If the store form asks, declare that responses submitted to
+  the survey are handled by Google Forms.
 - The three required certifications can be affirmed truthfully:
   - The extension does **not** sell or transfer user data to third parties
     (outside approved use cases).

@@ -10,7 +10,10 @@ const UNSUPPORTED_PROTOCOLS = new Set([
     'chrome-extension:',
     'devtools:',
     'edge:',
-    'view-source:'
+    'view-source:',
+    // Content scripts only match http/https, so file:// pages have no note
+    // support and should show the unsupported-page popup.
+    'file:'
 ]);
 
 const getTabUrlContext = (tab) => {

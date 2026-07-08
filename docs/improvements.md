@@ -42,6 +42,8 @@ The following broad UI work has been completed and should not be treated as pend
 - Added a minimize feature for injected notes: a header minimize button collapses a note into a single shared, self-organizing "docked tray" of pills at the bottom-right of the page (`scripts/content_script/minimizedTray.js`, its own isolated shadow root), instead of leaving multiple minimized notes floating and overlapping. Clicking a pill restores the note to its place. The minimized state is persisted via a new `minimized` note field and `updateMinimized` background handler, so a note left minimized returns to the tray after a reload; deleting a note also clears its pill.
 - Constrained note dragging to the viewport. Dragging had no bounds, so a note could be dropped fully off-screen and become unreachable. The drag handler now captures the element's rendered box (accounting for the `translate(-50%, -50%)` centering) on pointer-down and clamps each move so the whole note stays on screen; a note larger than the viewport pins to the top-left edge.
 - Reduced repeated storage reads in the popup. A single user action (open, add, delete, change page) now reads the notes array once and threads it through the render, pagination, and pagination-visibility helpers via a shared `refreshNotesView(preloaded)`, instead of each helper re-reading `chrome.storage`. Popup init went from ~4 reads to 1, and paging/add/delete from ~3–4 to 1. The helpers still read on their own when called without a preloaded array, so nothing else had to change.
+- Tightened content-script scope from `<all_urls>` to `http://*/*` and `https://*/*` (and matched the web-accessible-resources scope), and added `file:` to the unsupported-protocol list so local-file pages show the "notes cannot be added on this page" popup instead of a non-functional one.
+- Documented data handling for publishing: added a hostable `PRIVACY.md` (all notes and page URLs stay in `chrome.storage.local`, nothing is transmitted, no analytics or third parties — verified there are no network calls in the code) and `docs/store-listing.md` (single-purpose statement and per-permission justifications for the Chrome Web Store review form). Notes remain page-scoped, so the stored full URL is required and is disclosed rather than removed.
 
 ## High Priority Bugs
 
@@ -217,25 +219,7 @@ Recommended tests:
 
 ## Security And Privacy Improvements
 
-### 1. Limit content script match scope if possible
-
-The extension currently injects content scripts on `<all_urls>`.
-
-Recommended fix:
-
-- Keep `<all_urls>` only if the product requires it.
-- Exclude known unsupported schemes and browser/internal pages where possible.
-- Avoid injecting into sensitive pages if not needed.
-
-### 2. Avoid storing unnecessary URLs if product allows
-
-Notes currently store full page URLs. That is necessary for page-specific notes, but it is more sensitive than hostname-only storage.
-
-Recommended fix:
-
-- Store full URL only for page-scoped notes.
-- Store hostname only for site-scoped notes.
-- Document storage behavior in a privacy note if publishing.
+No open security or privacy items are currently tracked. Content scripts are scoped to `http`/`https` (with `file://` and browser-internal pages treated as unsupported), all background message payloads are validated before storage writes, and data handling is documented in `PRIVACY.md` (all data stays in `chrome.storage.local`; nothing is transmitted). Notes remain page-scoped, so the full page URL is stored and disclosed rather than reduced to hostname.
 
 ## Suggested Implementation Order
 

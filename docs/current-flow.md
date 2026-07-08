@@ -44,7 +44,7 @@ The UI surfaces that have been modernized are:
 - Action popup: `stickyNotes/stickyNotes.html`.
 - Background service worker: `background.js`.
 - Permissions: `activeTab`, `storage`, and `tabs`.
-- Content scripts on `<all_urls>`:
+- Content scripts on `http://*/*` and `https://*/*`:
   - `scripts/custom_script/messageTypes.js`
   - `scripts/custom_script/localizedText.js`
   - `scripts/content_script/content_script.js`

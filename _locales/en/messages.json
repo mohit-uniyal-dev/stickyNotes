@@ -24,7 +24,7 @@
     "message": "pin/unpin"
   },
   "unPinAll": {
-    "message": "Un Pin All"
+    "message": "Unpin All"
   },
   "setLanguage": {
     "message": "Set language : English"

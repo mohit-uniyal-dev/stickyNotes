@@ -12,9 +12,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const addBtn = document.getElementById('add-note')
     const allListContainer = document.getElementById('allNotesList')
     const removeAllBtn = document.querySelector('.removeAll')
+    const noOfNotesRow = document.querySelector('.noOfNotes')
     const title = document.querySelector('#title')
     const seeAllNotes = document.getElementById('seeAllNotes')
     const settingsBtn = document.getElementById('openTabButton')
+
+    // Hidden until we know there are notes to count; the list's empty/loading
+    // state carries the message otherwise, so the count row never duplicates it.
+    noOfNotesRow.style.display = 'none'
 
     let url = ''
     let hostName = ''
@@ -129,12 +134,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const updateNoteLength = (noteLength) => {
 
         if (noteLength == 0) {
-            const element = this.getElementById('notesNumber')
-            element.innerText = `No Notes Saved`
-            removeAllBtn.style.display = 'none'
+            // Hide the whole count row; the list empty state already tells the
+            // user there are no notes on this site.
+            noOfNotesRow.style.display = 'none'
         } else {
-            const element = this.getElementById('notesNumber')
-            element.innerText = `All Notes ${noteLength}`
+            noOfNotesRow.style.display = 'flex'
+            document.getElementById('notesNumber').innerText = `All Notes ${noteLength}`
             removeAllBtn.style.display = 'inline-flex'
         }
 

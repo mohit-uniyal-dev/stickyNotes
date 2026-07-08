@@ -29,6 +29,7 @@ const MESSAGE = Object.freeze({
     ENABLE_PIN: 'enablePin',
     STORE_AND_UPDATE_SIZE: 'StoreAndUpdateWidthAndHeight',
     ADD_SELECTED_COLOR: 'addSelectedColor',
+    UPDATE_MINIMIZED: 'updateMinimized',
     CONTENT_SCRIPT_INJECTED: 'contentScriptInjected',
 
     // Content DOM commands (`action`)

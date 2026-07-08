@@ -23,6 +23,7 @@
         "scripts/content_script/content_script.js",
         "scripts/content_script/draggable.js",
         "scripts/content_script/content_popup.js",
+        "scripts/content_script/minimizedTray.js",
         "scripts/content_script/content_eventHandling.js"
       ],
       "css": ["styles/colorPalette.css"],

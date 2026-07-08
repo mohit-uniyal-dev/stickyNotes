@@ -24,6 +24,11 @@ class SimpleShadowDOM {
                             <path d="m14 4 6 6-3 1-4 4v4l-2 2-3.5-3.5L4 14l2-2h4l4-4 1-4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
                         </svg>
                     </button>
+                    <button class="note-action minimize-btn" type="button" aria-label="Minimize note">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 17h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
                     <button uniqueId="${id}" class="note-action close-btn" type="button" aria-label="Close note">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -76,9 +81,19 @@ class SimpleShadowDOM {
         makeDraggable(shadowRoot.querySelector('.note-container'), shadowRoot.querySelector('.note-title'), id, position);
         eventListenerForNote(shadowRoot, container, noteContainer);
         makeResizable(shadowRoot.querySelector('.note-container'), size);
+
+        // A note saved in the minimized state comes back as a tray pill rather
+        // than a full window.
+        if (note.minimized) {
+            MinimizedTray.minimize(note);
+        }
     }
 
     static removeElementFromDom(id) {
+        // Drop any tray pill for this note as well, so deleting a minimized
+        // note doesn't leave an orphaned pill behind.
+        MinimizedTray.removePill(id);
+
         const containers = document.querySelectorAll('.model-notes');
         if (containers) {
             containers.forEach((container) => {
@@ -89,6 +104,16 @@ class SimpleShadowDOM {
                 }
             });
         }
+    }
+
+    static getHostById(id) {
+        const containers = document.querySelectorAll('.model-notes');
+        for (const container of containers) {
+            if (container.shadowRoot && container.shadowRoot.getElementById(id)) {
+                return container;
+            }
+        }
+        return null;
     }
 
     static updatePin(id) {
@@ -121,6 +146,8 @@ class SimpleShadowDOM {
 
     static showAllElementsFromDom() {
         document.querySelectorAll('.model-notes').forEach(element => {
+            // Keep minimized notes hidden; they are represented by a tray pill.
+            if (element.dataset.snMinimized === 'true') return;
             element.style.display = element.dataset.originalDisplay || 'block';
         });
     }

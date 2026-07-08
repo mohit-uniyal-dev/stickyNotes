@@ -50,6 +50,7 @@ The UI surfaces that have been modernized are:
   - `scripts/content_script/content_script.js`
   - `scripts/content_script/draggable.js`
   - `scripts/content_script/content_popup.js`
+  - `scripts/content_script/minimizedTray.js`
   - `scripts/content_script/content_eventHandling.js`
 - Content CSS: `styles/colorPalette.css`.
 - Web accessible resources for assets, styles, and extension HTML pages.
@@ -87,6 +88,7 @@ Additional fields are added later by user interactions:
 - `position`: saved after dragging a note.
 - `width` and `height`: saved after resizing a note.
 - `color`: saved after choosing a note color.
+- `minimized`: whether the note is collapsed into the docked minimized tray; defaulted to `false` by `createNote` and toggled by the note's minimize button and tray restore.
 
 Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`. Its read and write helpers return Promises and reject when `chrome.runtime.lastError` is present.
 
@@ -184,7 +186,9 @@ The main classes and functions are:
 - `makeResizable(element, size)`: applies saved dimensions and stores new dimensions after resizing.
 - `makeDraggable(element, handle, id, position)` (defined in `scripts/content_script/draggable.js`): applies saved position and stores new position after dragging.
 
-The injected note UI is a themed Shadow DOM card with a header toolbar, add/color/pin/close controls, color palette, editable body, empty placeholder, resize handles, persisted position, and persisted size.
+The injected note UI is a themed Shadow DOM card with a header toolbar, add/color/pin/minimize/close controls, color palette, editable body, empty placeholder, resize handles, persisted position, and persisted size.
+
+`scripts/content_script/minimizedTray.js` provides `MinimizedTray`, a shared Shadow DOM strip anchored to the bottom-right of the viewport. Minimizing a note (`minimize-btn`) hides its floating window and adds one compact pill (color dot plus a short content preview) to the tray; clicking a pill restores the note to its place. The tray is created lazily and removed when the last note is restored, and `createPopup` renders a note that loads with `minimized: true` straight into the tray. Minimized state is persisted through the background `updateMinimized` message.
 
 The content script listener in `scripts/content_script/content_script.js` handles messages:
 
@@ -205,6 +209,7 @@ Supported interactions:
 - Toggle color palette from the options button.
 - Save selected note color through background `addSelectedColor`.
 - Pin/unpin note through background `enablePin`.
+- Minimize note into the docked tray, hiding the window and persisting `minimized: true` through background `updateMinimized`.
 - Close note through background `updatePin`.
 - Edit note content with a debounced `input` handler that sends `updateNoteContent` to the background.
 - Stop keyboard and focus events from bubbling into the host webpage.
@@ -230,6 +235,7 @@ This file handles most runtime messages:
 - `enablePin`: updates pin state and re-injects the note into the active tab.
 - `StoreAndUpdateWidthAndHeight`: saves note dimensions.
 - `addSelectedColor`: saves selected note color.
+- `updateMinimized`: saves whether a note is collapsed into the docked minimized tray.
 
 ### `tabListener.js`
 

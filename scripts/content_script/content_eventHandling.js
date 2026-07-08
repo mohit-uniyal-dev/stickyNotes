@@ -90,6 +90,24 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
 
 
 
+    // minimize btn — collapse the note into the docked tray
+    const minimizeBtn = shadowRoot.querySelector('.minimize-btn');
+    const noteTitleEl = shadowRoot.querySelector('.note-title');
+    if (minimizeBtn) {
+        minimizeBtn.addEventListener('click', () => {
+            const textAreaEl = shadowRoot.querySelector('.textarea');
+            const noteId = textAreaEl.id;
+            const colorClass = Array.from(noteTitleEl.classList).find((cls) => cls.startsWith('color-'));
+
+            MinimizedTray.minimize({
+                id: noteId,
+                content: textAreaEl.textContent,
+                color: colorClass ? colorClass.replace('color-', '') : ''
+            });
+            chrome.runtime.sendMessage({ action: MESSAGE.UPDATE_MINIMIZED, id: noteId, minimized: true });
+        });
+    }
+
     const textArea = shadowRoot.querySelector('.textarea');
     preventUnintendedEvents(textArea)
     // Debounce function to delay execution

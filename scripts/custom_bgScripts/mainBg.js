@@ -309,6 +309,26 @@ chrome.runtime.onMessage.addListener(
 
             await UserLocalStorage.setStorage(noteData);
         }
+
+        if (request.action === MESSAGE.UPDATE_MINIMIZED) {
+            const noteId = request.id;
+            const minimized = request.minimized;
+
+            if (!isNonEmptyString(noteId) || typeof minimized !== 'boolean') {
+                console.warn('updateMinimized ignored: missing or invalid id/minimized.');
+                return;
+            }
+
+            const notesArray = await UserLocalStorage.retrieveNoteData();
+            const updatedNotesArray = notesArray.map(note => {
+                if (note.id === noteId) {
+                    return { ...note, minimized: minimized };
+                }
+                return note;
+            });
+
+            await UserLocalStorage.setStorage(updatedNotesArray);
+        }
         return true
 
     }

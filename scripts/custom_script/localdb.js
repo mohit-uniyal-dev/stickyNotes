@@ -78,6 +78,7 @@ class UserLocalStorage {
             content: '',
             title: 'Title',
             enablePin: true,
+            minimized: false,
             schemaVersion: UserLocalStorage.NOTE_SCHEMA_VERSION
         };
     }

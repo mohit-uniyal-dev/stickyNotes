@@ -396,6 +396,68 @@ const insertContentInMain = (note) => {
 
 
 
+// Selection logic for a single sidebar host card, shared by the delegated
+// click and keyboard handlers.
+const selectHostCard = async (noteContainer) => {
+    if (selectedNoteContainer === noteContainer) {
+        // Toggle off if the active card is activated again.
+        noteContainer.classList.remove('select');
+        selectedNoteContainer = null;
+        document.querySelector('.contentContainer').innerHTML = '';
+    } else {
+        if (selectedNoteContainer) {
+            selectedNoteContainer.classList.remove('select');
+        }
+
+        noteContainer.classList.add('select');
+        selectedNoteContainer = noteContainer;
+
+        const hostName = noteContainer.getAttribute('hostName');
+        const storeArr = await UserLocalStorage.retrieveNoteData();
+        const searchBox = document.getElementById('searchBox');
+        const hasEmptySearch = searchBox.value.trim() === '';
+
+        if (hasEmptySearch === true) {
+            renderMainNotesForHost(storeArr, hostName);
+        } else {
+            insertFilterNote(searchBox.value);
+        }
+
+        flag = true;
+    }
+
+    syncHostCardPressedState();
+    eventListenerForEditBtn();
+    eventListenerForDeleteBtn();
+};
+
+// Bind sidebar selection once via delegation on the stable list container, so
+// re-rendering cards (or re-running selection setup after a delete) never
+// stacks duplicate per-card listeners.
+const setupSidebarDelegation = () => {
+    const sidebarList = document.querySelector('.list_notes');
+    if (!sidebarList || sidebarList.dataset.delegationBound === 'true') return;
+    sidebarList.dataset.delegationBound = 'true';
+
+    sidebarList.addEventListener('click', (event) => {
+        // Action buttons (open / delete) stop propagation, so only plain card
+        // clicks reach here.
+        const card = event.target.closest('.noteContainer');
+        if (!card) return;
+        selectHostCard(card);
+    });
+
+    sidebarList.addEventListener('keydown', (event) => {
+        const card = event.target.closest('.noteContainer');
+        // Only when the card itself is focused, not a nested action button.
+        if (!card || event.target !== card) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectHostCard(card);
+        }
+    });
+};
+
 const toggleNoteContainerSelection = () => {
     const noteContainers = document.querySelectorAll('.noteContainer');
 
@@ -434,61 +496,7 @@ const toggleNoteContainerSelection = () => {
     }
 
 
-    noteContainers.forEach(noteContainer => {
-        noteContainer.addEventListener('click', async () => {
-
-            if (selectedNoteContainer === noteContainer) {
-
-                // Deselect if the same container is clicked again
-                noteContainer.classList.remove('select');
-                selectedNoteContainer = null;
-
-                // Clear main content container
-                document.querySelector('.contentContainer').innerHTML = '';
-            } else {
-
-                // If a different container is selected
-                if (selectedNoteContainer) {
-                    selectedNoteContainer.classList.remove('select');
-                }
-
-                // When user clicks, value will be selected
-                noteContainer.classList.add('select');
-                selectedNoteContainer = noteContainer;
-
-                const hostName = noteContainer.getAttribute('hostName');
-
-                // Get the data from local storage
-                const storeArr = await UserLocalStorage.retrieveNoteData();
-                // Inject content in main
-                const searchBox = document.getElementById('searchBox');
-                const hasEmptySearch = searchBox.value.trim() === '';
-
-
-                if (hasEmptySearch === true) {
-                    renderMainNotesForHost(storeArr, hostName);
-                } else {
-                    insertFilterNote(searchBox.value)
-                }
-
-                flag = true
-            }
-            syncHostCardPressedState();
-            eventListenerForEditBtn()
-            eventListenerForDeleteBtn()
-        });
-
-        // Activate selection with the keyboard when the card itself is focused
-        // (ignore keys bubbling up from the nested action buttons).
-        noteContainer.addEventListener('keydown', (event) => {
-            if (event.target !== noteContainer) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                noteContainer.click();
-            }
-        });
-    });
-
+    setupSidebarDelegation();
 
     flag = true
 }

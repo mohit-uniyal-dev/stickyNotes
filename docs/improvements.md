@@ -38,6 +38,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Converted injected-note dragging and resizing from mouse events to Pointer Events with pointer capture: adds touch/pen support, removes global `document` listeners, skips drags that begin on the note's control buttons, and persists position/size once on pointer-up (dragging previously saved via a debounced `mousemove`). Added `touch-action: none` to the drag handle and resize handles.
 - Made the All Notes sidebar host cards keyboard-operable: each card is now a focusable `role="button"` with an `aria-label`, an `aria-pressed` state kept in sync with selection, Enter/Space activation (ignoring keys from the nested action buttons), and a visible focus ring.
 - Reduced redundant tab scanning: `removeUsingHostName` now runs one `chrome.tabs.query({})` and matches every removed note against each tab (previously a full tab scan per note), and `updateNoteContent` no longer broadcasts the edit back to the tab that originated it.
+- Fixed a duplicate-listener bug in the All Notes sidebar and moved selection to event delegation. `toggleNoteContainerSelection` used to re-attach click/keydown handlers to every host card each time it ran — including after deletes, which do not rebuild the sidebar — so a card accumulated handlers and one click would select-then-deselect. Selection is now bound once via a delegated listener on the stable `.list_notes` container.
 
 ## High Priority Bugs
 
@@ -124,6 +125,11 @@ Recommended fix:
 - Re-render only changed notes where possible.
 - Use event delegation for list actions.
 - Keep current page, selected host, and filtered results in explicit state.
+
+Current status:
+
+- All Notes sidebar host-card selection is now delegated (one listener on `.list_notes`), which fixed duplicate-listener accumulation after deletes.
+- The main content area still rebuilds its cards and reattaches edit/delete listeners, but always on freshly created elements, so no duplication occurs there. Incremental "render only changed notes" is not yet implemented.
 
 ### 3. Reduce repeated storage reads
 

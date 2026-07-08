@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Stick it - web notes</title>
+    <link rel="stylesheet" href="../styles/welcome.css" />
+  </head>
+
+  <body>
+    <main class="wrap">
+      <header class="hero">
+        <span class="logo"
+          ><img src="../assets/icons/icon_128.png" alt="Stick it - web notes"
+        /></span>
+        <h1>Welcome to Stick it - web notes</h1>
+        <p class="tagline">
+          Add sticky notes to any web page and pick up right where you left off.
+          Everything is saved on your device — no account, no servers.
+        </p>
+      </header>
+
+      <section class="section">
+        <h2 class="section-title">Getting started</h2>
+        <div class="cards">
+          <div class="card">
+            <span class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <h3>Add a note</h3>
+            <p>
+              Open Stick it from the toolbar on any website and click
+              <strong>Add Note</strong> — a sticky note appears right on the
+              page, ready to type in.
+            </p>
+          </div>
+
+          <div class="card">
+            <span class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round">
+                <path d="m14 4 6 6-3 1-4 4v4l-2 2-3.5-3.5L4 14l2-2h4l4-4 1-4Z" />
+              </svg>
+            </span>
+            <h3>It stays put</h3>
+            <p>
+              Pin a note and it comes back automatically the next time you visit
+              that page. Notes are tied to the exact page URL.
+            </p>
+          </div>
+
+          <div class="card">
+            <span class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3" />
+              </svg>
+            </span>
+            <h3>Make it yours</h3>
+            <p>
+              Drag, resize, recolor, and minimize each note. Minimized notes
+              tuck into a tidy tray in the corner.
+            </p>
+            <span class="dots" aria-hidden="true">
+              <i class="dot dot-red"></i>
+              <i class="dot dot-yellow"></i>
+              <i class="dot dot-purple"></i>
+              <i class="dot dot-pink"></i>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Good to know</h2>
+        <div class="tips">
+          <div class="tip">
+            <h3>Pin the extension</h3>
+            <p>
+              Click the puzzle-piece icon in the toolbar and pin Stick it so
+              it's always one click away.
+            </p>
+          </div>
+          <div class="tip">
+            <h3>All your notes in one place</h3>
+            <p>
+              Open the All Notes page to search, edit, and manage every note,
+              grouped by website.
+            </p>
+          </div>
+          <div class="tip">
+            <h3>Private by design</h3>
+            <p>
+              Your notes never leave this computer. No accounts, no tracking, no
+              servers.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <button id="openAllNotes" class="btn" type="button">
+          Open the All Notes page
+        </button>
+        <p class="small">
+          Tip: open Stick it on any web page and click
+          <kbd>Add Note</kbd> to get started.
+        </p>
+      </footer>
+    </main>
+
+    <script src="welcome.js"></script>
+  </body>
+</html>

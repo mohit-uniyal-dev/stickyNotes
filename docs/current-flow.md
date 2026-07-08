@@ -9,7 +9,7 @@ This repository is a Chrome Manifest V3 extension named "Stick it - web notes". 
 - `stickyNotes/` contains the browser action popup UI.
 - `scripts/content_script/` contains scripts injected into webpages to render, edit, drag, resize, pin, color, and remove sticky notes.
 - `scripts/custom_bgScripts/` contains service worker logic for note creation, note updates, tab coordination, install/update reloads, and cleanup.
-- `stickyNote_html_page/` contains the full-page "All Notes" view and the unsupported-page popup.
+- `stickyNote_html_page/` contains the full-page "All Notes" view, the unsupported-page popup, and the first-run welcome page.
 - `scripts/custom_script/` contains shared helpers for storage, localization, tooltips, and the full-page notes view.
 - `styles/` contains popup, injected note, full-page, error page, color palette, and vendored Bootstrap CSS.
 - `_locales/` contains Chrome i18n message files.
@@ -257,7 +257,7 @@ When a tab finishes loading, the background:
 
 ### `autoRef.js`
 
-On extension install or update, it reloads all open tabs so the content scripts are available immediately.
+On extension install or update, it reloads all open tabs so the content scripts are available immediately. On first install only (`reason === "install"`), it also opens `stickyNote_html_page/welcome.html`, a themed onboarding page (styled with `styles/welcome.css` from the shared tokens) whose only action opens the All Notes page.
 
 ### `removeTabListener.js`
 

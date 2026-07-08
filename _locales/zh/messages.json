@@ -1,0 +1,65 @@
+{
+  "appName": {
+    "message": "Stick it - web notes"
+  },
+  "appDescription": {
+    "message": "在任何网页上添加便签，随时从上次停下的地方继续。所有数据都保存在您的设备上。"
+  },
+  "brandName": {
+    "message": "Stick it - web notes"
+  },
+  "noOfNotes": {
+    "message": "所有便签"
+  },
+  "deleteMessageAll": {
+    "message": "确定要删除所有便签吗？"
+  },
+  "deleteMessage": {
+    "message": "确定要删除此便签吗？"
+  },
+  "seeAllNote": {
+    "message": "所有便签"
+  },
+  "pinAll": {
+    "message": "固定或取消固定便签"
+  },
+  "unPinAll": {
+    "message": "全部取消固定"
+  },
+  "setLanguage": {
+    "message": "语言：中文"
+  },
+  "tooltipRemoveAll": {
+    "message": "删除所有便签"
+  },
+  "tooltipOpenTab": {
+    "message": "设置与偏好"
+  },
+  "tooltipAddNote": {
+    "message": "添加新便签"
+  },
+  "tooltipRefresh": {
+    "message": "刷新便签"
+  },
+  "tooltipGridView": {
+    "message": "网格视图"
+  },
+  "navigation": {
+    "message": "点击前往指定网站。"
+  },
+  "deleteDescription": {
+    "message": "删除便签"
+  },
+  "deleteAllDescription": {
+    "message": "点击删除所有便签和此卡片。"
+  },
+  "DeleteMsg": {
+    "message": "确定要删除此便签吗？"
+  },
+  "DeleteAllMsg": {
+    "message": "确定要删除所有便签吗？"
+  },
+  "DisplayPin": {
+    "message": "全部固定"
+  }
+}

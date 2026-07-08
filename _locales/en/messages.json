@@ -12,10 +12,10 @@
     "message": "All Notes"
   },
   "deleteMessageAll": {
-    "message": "Are you sure you want to remove all notes"
+    "message": "Are you sure you want to remove all notes?"
   },
   "deleteMessage": {
-    "message": "Are you sure you want to remove note "
+    "message": "Are you sure you want to remove this note?"
   },
   "seeAllNote": {
     "message": "All Notes"
@@ -48,13 +48,13 @@
     "message": "Click to navigate to the specified website."
   },
   "deleteDescription": {
-    "message": "delete  (popup or any other place)"
+    "message": "Delete note"
   },
   "deleteAllDescription": {
     "message": "Click to remove all notes and this card."
   },
   "DeleteMsg": {
-    "message": "Are you sure you want to remove this notes?"
+    "message": "Are you sure you want to remove this note?"
   },
   "DeleteAllMsg": {
     "message": "Are you sure you want to remove all notes?"

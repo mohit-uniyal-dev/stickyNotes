@@ -1,0 +1,65 @@
+{
+  "appName": {
+    "message": "Stick it - web notes"
+  },
+  "appDescription": {
+    "message": "Añade notas adhesivas a cualquier página web y retoma justo donde lo dejaste. Todo se queda en tu dispositivo."
+  },
+  "brandName": {
+    "message": "Stick it - web notes"
+  },
+  "noOfNotes": {
+    "message": "Todas las notas"
+  },
+  "deleteMessageAll": {
+    "message": "¿Seguro que quieres eliminar todas las notas?"
+  },
+  "deleteMessage": {
+    "message": "¿Seguro que quieres eliminar esta nota?"
+  },
+  "seeAllNote": {
+    "message": "Todas las notas"
+  },
+  "pinAll": {
+    "message": "Fijar o soltar la nota"
+  },
+  "unPinAll": {
+    "message": "Soltar todas"
+  },
+  "setLanguage": {
+    "message": "Idioma: Español"
+  },
+  "tooltipRemoveAll": {
+    "message": "Eliminar todas las notas"
+  },
+  "tooltipOpenTab": {
+    "message": "Ajustes y preferencias"
+  },
+  "tooltipAddNote": {
+    "message": "Añadir una nota"
+  },
+  "tooltipRefresh": {
+    "message": "Actualizar notas"
+  },
+  "tooltipGridView": {
+    "message": "Vista de cuadrícula"
+  },
+  "navigation": {
+    "message": "Haz clic para ir al sitio web indicado."
+  },
+  "deleteDescription": {
+    "message": "Eliminar nota"
+  },
+  "deleteAllDescription": {
+    "message": "Haz clic para eliminar todas las notas y esta tarjeta."
+  },
+  "DeleteMsg": {
+    "message": "¿Seguro que quieres eliminar esta nota?"
+  },
+  "DeleteAllMsg": {
+    "message": "¿Seguro que quieres eliminar todas las notas?"
+  },
+  "DisplayPin": {
+    "message": "Fijar todas"
+  }
+}

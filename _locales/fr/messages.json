@@ -3,31 +3,31 @@
     "message": "Stick it - web notes"
   },
   "appDescription": {
-    "message": "This handy Chrome extension allows you to create and save sticky notes directly on the websites you visit"
+    "message": "Ajoutez des notes autocollantes sur n'importe quelle page web et reprenez là où vous vous êtes arrêté. Tout reste sur votre appareil."
   },
   "brandName": {
-    "message": "Notes autocollantes"
+    "message": "Stick it - web notes"
   },
   "noOfNotes": {
     "message": "Toutes les notes"
   },
   "deleteMessageAll": {
-    "message": "Êtes-vous sûr de vouloir supprimer toutes les notes"
+    "message": "Voulez-vous vraiment supprimer toutes les notes ?"
   },
   "deleteMessage": {
-    "message": "Êtes-vous sûr de vouloir supprimer la note "
+    "message": "Voulez-vous vraiment supprimer cette note ?"
   },
   "seeAllNote": {
     "message": "Toutes les notes"
   },
   "pinAll": {
-    "message": "épingler/désépingler "
+    "message": "Épingler ou détacher la note"
   },
   "unPinAll": {
-    "message": "Désépingler tout"
+    "message": "Tout détacher"
   },
   "setLanguage": {
-    "message": "Définir la langue : Anglais"
+    "message": "Langue : Français"
   },
   "tooltipRemoveAll": {
     "message": "Supprimer toutes les notes"
@@ -36,7 +36,7 @@
     "message": "Paramètres et préférences"
   },
   "tooltipAddNote": {
-    "message": "Ajouter une nouvelle note"
+    "message": "Ajouter une note"
   },
   "tooltipRefresh": {
     "message": "Actualiser les notes"
@@ -45,20 +45,21 @@
     "message": "Vue en grille"
   },
   "navigation": {
-    "message": "Cliquez pour naviguer vers le site web spécifié."
+    "message": "Cliquez pour accéder au site web indiqué."
   },
-
   "deleteDescription": {
-    "message": "supprimer (popup ou tout autre endroit)"
+    "message": "Supprimer la note"
   },
-
   "deleteAllDescription": {
     "message": "Cliquez pour supprimer toutes les notes et cette carte."
   },
   "DeleteMsg": {
-    "message": "Êtes-vous sûr de vouloir supprimer ces notes ?"
+    "message": "Voulez-vous vraiment supprimer cette note ?"
   },
   "DeleteAllMsg": {
-    "message": "Êtes-vous sûr de vouloir supprimer toutes les notes ?"
+    "message": "Voulez-vous vraiment supprimer toutes les notes ?"
+  },
+  "DisplayPin": {
+    "message": "Tout épingler"
   }
 }

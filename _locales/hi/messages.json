@@ -1,0 +1,65 @@
+{
+  "appName": {
+    "message": "Stick it - web notes"
+  },
+  "appDescription": {
+    "message": "किसी भी वेब पेज पर स्टिकी नोट जोड़ें और जहाँ छोड़ा था वहीं से जारी रखें। सब कुछ आपके डिवाइस पर ही रहता है।"
+  },
+  "brandName": {
+    "message": "Stick it - web notes"
+  },
+  "noOfNotes": {
+    "message": "सभी नोट"
+  },
+  "deleteMessageAll": {
+    "message": "क्या आप वाकई सभी नोट हटाना चाहते हैं?"
+  },
+  "deleteMessage": {
+    "message": "क्या आप वाकई यह नोट हटाना चाहते हैं?"
+  },
+  "seeAllNote": {
+    "message": "सभी नोट"
+  },
+  "pinAll": {
+    "message": "नोट पिन करें या अनपिन करें"
+  },
+  "unPinAll": {
+    "message": "सभी अनपिन करें"
+  },
+  "setLanguage": {
+    "message": "भाषा: हिन्दी"
+  },
+  "tooltipRemoveAll": {
+    "message": "सभी नोट हटाएँ"
+  },
+  "tooltipOpenTab": {
+    "message": "सेटिंग्स और प्राथमिकताएँ"
+  },
+  "tooltipAddNote": {
+    "message": "नया नोट जोड़ें"
+  },
+  "tooltipRefresh": {
+    "message": "नोट रिफ़्रेश करें"
+  },
+  "tooltipGridView": {
+    "message": "ग्रिड व्यू"
+  },
+  "navigation": {
+    "message": "निर्दिष्ट वेबसाइट पर जाने के लिए क्लिक करें।"
+  },
+  "deleteDescription": {
+    "message": "नोट हटाएँ"
+  },
+  "deleteAllDescription": {
+    "message": "सभी नोट और यह कार्ड हटाने के लिए क्लिक करें।"
+  },
+  "DeleteMsg": {
+    "message": "क्या आप वाकई यह नोट हटाना चाहते हैं?"
+  },
+  "DeleteAllMsg": {
+    "message": "क्या आप वाकई सभी नोट हटाना चाहते हैं?"
+  },
+  "DisplayPin": {
+    "message": "सभी पिन करें"
+  }
+}

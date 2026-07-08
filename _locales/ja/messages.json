@@ -3,61 +3,63 @@
     "message": "Stick it - web notes"
   },
   "appDescription": {
-    "message": "This handy Chrome extension allows you to create and save sticky notes directly on the websites you visit"
+    "message": "どんなウェブページにも付箋メモを追加して、中断したところからすぐに再開できます。すべてのデータはお使いのデバイスに保存されます。"
   },
   "brandName": {
-    "message": "付箋"
+    "message": "Stick it - web notes"
   },
   "noOfNotes": {
-    "message": "すべてのノート"
+    "message": "すべてのメモ"
   },
   "deleteMessageAll": {
-    "message": "すべてのノートを削除してもよろしいですか？"
+    "message": "すべてのメモを削除してもよろしいですか？"
   },
   "deleteMessage": {
-    "message": "このノートを削除してもよろしいですか？"
+    "message": "このメモを削除してもよろしいですか？"
   },
   "seeAllNote": {
-    "message": "すべてのノート"
-  },
-  "deleteDescription": {
-    "message": "削除（ポップアップまたは他の場所）"
+    "message": "すべてのメモ"
   },
   "pinAll": {
-    "message": "ピン留め/ピン留め解除"
+    "message": "メモをピン留め／解除"
   },
   "unPinAll": {
-    "message": "すべてのピンを外す"
+    "message": "すべて解除"
   },
   "setLanguage": {
-    "message": "言語設定：英語"
+    "message": "言語: 日本語"
   },
   "tooltipRemoveAll": {
-    "message": "すべてのノートを削除"
+    "message": "すべてのメモを削除"
   },
   "tooltipOpenTab": {
-    "message": "設定と設定"
+    "message": "設定と環境設定"
   },
   "tooltipAddNote": {
-    "message": "新しいノートを追加"
+    "message": "新しいメモを追加"
   },
   "tooltipRefresh": {
-    "message": "ノートを更新"
+    "message": "メモを更新"
   },
   "tooltipGridView": {
-    "message": "グリッドビュー"
+    "message": "グリッド表示"
   },
   "navigation": {
-    "message": "指定されたウェブサイトに移動するにはクリックしてください。"
+    "message": "クリックして指定のウェブサイトに移動します。"
   },
-
+  "deleteDescription": {
+    "message": "メモを削除"
+  },
   "deleteAllDescription": {
-    "message": "すべてのノートとこのカードを削除するにはクリックしてください。"
+    "message": "クリックしてすべてのメモとこのカードを削除します。"
   },
   "DeleteMsg": {
-    "message": "これらのノートを削除してもよろしいですか？"
+    "message": "このメモを削除してもよろしいですか？"
   },
   "DeleteAllMsg": {
-    "message": "すべてのノートを削除してもよろしいですか？"
+    "message": "すべてのメモを削除してもよろしいですか？"
+  },
+  "DisplayPin": {
+    "message": "すべてピン留め"
   }
 }

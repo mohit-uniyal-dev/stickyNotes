@@ -1,0 +1,65 @@
+{
+  "appName": {
+    "message": "Stick it - web notes"
+  },
+  "appDescription": {
+    "message": "Fügen Sie Haftnotizen zu jeder Webseite hinzu und machen Sie genau dort weiter, wo Sie aufgehört haben. Alles bleibt auf Ihrem Gerät."
+  },
+  "brandName": {
+    "message": "Stick it - web notes"
+  },
+  "noOfNotes": {
+    "message": "Alle Notizen"
+  },
+  "deleteMessageAll": {
+    "message": "Möchten Sie wirklich alle Notizen entfernen?"
+  },
+  "deleteMessage": {
+    "message": "Möchten Sie diese Notiz wirklich entfernen?"
+  },
+  "seeAllNote": {
+    "message": "Alle Notizen"
+  },
+  "pinAll": {
+    "message": "Notiz anheften oder lösen"
+  },
+  "unPinAll": {
+    "message": "Alle lösen"
+  },
+  "setLanguage": {
+    "message": "Sprache: Deutsch"
+  },
+  "tooltipRemoveAll": {
+    "message": "Alle Notizen löschen"
+  },
+  "tooltipOpenTab": {
+    "message": "Einstellungen & Voreinstellungen"
+  },
+  "tooltipAddNote": {
+    "message": "Neue Notiz hinzufügen"
+  },
+  "tooltipRefresh": {
+    "message": "Notizen aktualisieren"
+  },
+  "tooltipGridView": {
+    "message": "Rasteransicht"
+  },
+  "navigation": {
+    "message": "Klicken, um zur angegebenen Website zu navigieren."
+  },
+  "deleteDescription": {
+    "message": "Notiz löschen"
+  },
+  "deleteAllDescription": {
+    "message": "Klicken, um alle Notizen und diese Karte zu entfernen."
+  },
+  "DeleteMsg": {
+    "message": "Möchten Sie diese Notiz wirklich entfernen?"
+  },
+  "DeleteAllMsg": {
+    "message": "Möchten Sie wirklich alle Notizen entfernen?"
+  },
+  "DisplayPin": {
+    "message": "Alle anheften"
+  }
+}

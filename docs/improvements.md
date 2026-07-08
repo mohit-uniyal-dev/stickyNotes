@@ -43,6 +43,8 @@ The following broad UI work has been completed and should not be treated as pend
 - Constrained note dragging to the viewport. Dragging had no bounds, so a note could be dropped fully off-screen and become unreachable. The drag handler now captures the element's rendered box (accounting for the `translate(-50%, -50%)` centering) on pointer-down and clamps each move so the whole note stays on screen; a note larger than the viewport pins to the top-left edge.
 - Reduced repeated storage reads in the popup. A single user action (open, add, delete, change page) now reads the notes array once and threads it through the render, pagination, and pagination-visibility helpers via a shared `refreshNotesView(preloaded)`, instead of each helper re-reading `chrome.storage`. Popup init went from ~4 reads to 1, and paging/add/delete from ~3–4 to 1. The helpers still read on their own when called without a preloaded array, so nothing else had to change.
 - Tightened content-script scope from `<all_urls>` to `http://*/*` and `https://*/*` (and matched the web-accessible-resources scope), and added `file:` to the unsupported-protocol list so local-file pages show the "notes cannot be added on this page" popup instead of a non-functional one.
+- Treated the Chrome Web Store as an unsupported page. Its URLs are `https` but Chrome blocks content-script injection there, so the normal (non-functional) popup was shown; `chromewebstore.google.com` (and the legacy `chrome.google.com/webstore`) now show the "notes cannot be added on this page" popup instead.
+- Hardened tab messaging against "Receiving end does not exist" rejections. Messaging a tab that has no content script (page still loading, a restricted page such as the Chrome Web Store, or a tab opened before the extension loaded) rejected unhandled and surfaced as an uncaught promise error (visible from the popup on open). Added a shared `sendMessageToTab(tabId, message)` helper in `messageTypes.js` that swallows that benign rejection, and routed every fire-and-forget `chrome.tabs.sendMessage` through it (popup, `mainBg`, `tabListener`, `removeTabListener`, and the All Notes page). The one send that needs a response (Add Note) keeps the callback form with a `chrome.runtime.lastError` check.
 - Documented data handling for publishing: added a hostable `PRIVACY.md` (all notes and page URLs stay in `chrome.storage.local`, nothing is transmitted, no analytics or third parties — verified there are no network calls in the code) and `docs/store-listing.md` (single-purpose statement and per-permission justifications for the Chrome Web Store review form). Notes remain page-scoped, so the stored full URL is required and is disclosed rather than removed.
 
 ## High Priority Bugs
@@ -194,9 +196,18 @@ Recommended fix:
 
 ## Testing Gaps
 
-There are no visible automated tests in the current repository.
+There are no unit tests yet, but lightweight, dependency-free tooling now exists
+(`package.json` + `tools/`):
 
-Recommended tests:
+- `npm run check` (`tools/check.mjs`) — `node --check` over every first-party
+  script, a manifest parse plus referenced-file existence check, and a
+  stale-string scan for regressions of past fixes (misspellings, renamed files,
+  the removed `messageActiveTab`, the old `id="pin"` bug).
+- `npm run zip` (`tools/zip.mjs`) — runs the check, then builds a spec-compliant
+  Chrome Web Store upload zip of runtime files only (excludes `tools/`, `docs/`,
+  `package.json`, and dotfiles).
+
+Recommended tests (still worth adding):
 
 - Unit tests for note creation and storage mutations.
 - Unit tests for URL/hostname filtering behavior.

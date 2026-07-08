@@ -90,8 +90,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*                          START                      */
     // get totoal no of page 
-    const getTotalPages = async () => {
-        const allNotes = await UserLocalStorage.retrieveNoteData()
+    const getTotalPages = async (preloaded) => {
+        const allNotes = preloaded || await UserLocalStorage.retrieveNoteData()
         const filterNotes = allNotes.filter(noteObj => { return noteObj.hostName === hostName })
         return new Promise((resolve, reject) => {
             const result = Math.ceil(filterNotes.length / notesPerPage);
@@ -101,11 +101,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // create pagination  pannel -chat gpt code - read it one time 
-    const renderPagination = async () => {
+    const renderPagination = async (preloaded) => {
         const paginationContainer = document.querySelector('.pagination');
         paginationContainer.innerHTML = '';
 
-        const totalPages = await getTotalPages();
+        const totalPages = await getTotalPages(preloaded);
 
         const prevButton = document.createElement('a');
         prevButton.href = '#';
@@ -145,8 +145,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-    async function checkPagination() {
-        const length = await getSameHostNameLength();
+    async function checkPagination(preloaded) {
+        const length = await getSameHostNameLength(preloaded);
 
         const paginationContainer = document.querySelector('.pagination');
 
@@ -157,11 +157,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function getSameHostNameLength() {
-        return UserLocalStorage.retrieveNoteData().then(noteArr => {
-            const filterNote = noteArr.filter(noteObj => noteObj.hostName === hostName);
-            return filterNote.length;
-        });
+    async function getSameHostNameLength(preloaded) {
+        const noteArr = preloaded || await UserLocalStorage.retrieveNoteData();
+        return noteArr.filter(noteObj => noteObj.hostName === hostName).length;
     }
     // Render a single centered message (loading / empty / error) into the
     // note list in place of note cards.
@@ -174,16 +172,16 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // render notes
-    const renderNotes = async () => {
+    const renderNotes = async (preloaded) => {
         const allListContainer = document.getElementById('allNotesList');
         allListContainer.innerHTML = ''; // Clear the current notes
 
-        // the start and end index display the no of cards should be display from what start to end 
+        // the start and end index display the no of cards should be display from what start to end
         const startIndex = (currentPage - 1) * notesPerPage;
         let endIndex = startIndex + notesPerPage;
 
 
-        noteArr = await UserLocalStorage.retrieveNoteData()
+        noteArr = preloaded || await UserLocalStorage.retrieveNoteData()
         // based of the start and end value get noteToShow 
         const filterNote = noteArr.filter(noteObj => { return noteObj.hostName === hostName })
         const notesToShow = filterNote.slice(startIndex, endIndex);
@@ -213,17 +211,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Load notes once, then drive the list, pagination, and pagination
+    // visibility from that single read to avoid repeated storage reads within
+    // one user action.
+    const refreshNotesView = async (preloaded) => {
+        const allNotes = preloaded || await UserLocalStorage.retrieveNoteData();
+        await renderNotes(allNotes);
+        await renderPagination(allNotes);
+        await checkPagination(allNotes);
+    };
+
     // change pages
     async function changePage(page) {
-        const totalPages = await getTotalPages();
-        console.log(totalPages, 'totalPage', page, 'page')
+        const allNotes = await UserLocalStorage.retrieveNoteData();
+        const totalPages = await getTotalPages(allNotes);
 
         if (page < 1) page = 1;
         if (page > totalPages) page = totalPages;
 
         currentPage = page;
-        renderNotes();
-        renderPagination();
+        await renderNotes(allNotes);
+        await renderPagination(allNotes);
     }
 
     // inject function
@@ -239,9 +247,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    const retrieveData = async () => {
+    const retrieveData = async (preloaded) => {
 
-        const noteArr = await UserLocalStorage.retrieveNoteData()
+        const noteArr = preloaded || await UserLocalStorage.retrieveNoteData()
         if (noteArr.length > 0) {
 
             noteArr.forEach((element, index) => {
@@ -260,10 +268,9 @@ document.addEventListener('DOMContentLoaded', function () {
         renderListMessage('Loading notes...');
         try {
             await initActiveTabContext()
-            retrieveData()
-            renderNotes();
-            renderPagination();
-            checkPagination()
+            const allNotes = await UserLocalStorage.retrieveNoteData()
+            retrieveData(allNotes)
+            await refreshNotesView(allNotes)
         } catch (error) {
             console.warn('Unable to initialize active tab context.', error)
             setHostScopedActionsEnabled(false)
@@ -423,17 +430,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
 
-                            length = length - 1
-                            updateNoteLength(length)
-
                             const updateNote = await UserLocalStorage.retrieveNoteData()
                             if (updateNote.length % 2 !== 0) {
-                                changePage(currentPage - 1)
-                                checkPagination()
+                                await changePage(currentPage - 1)
+                                await checkPagination(updateNote)
                             } else {
-                                renderNotes()
-                                renderPagination()
-                                checkPagination()
+                                await refreshNotesView(updateNote)
                             }
 
                         }
@@ -465,12 +467,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     noteArr = await UserLocalStorage.retrieveNoteData()
                     noteArr.push(noteData)
                     await UserLocalStorage.setStorage(noteArr);
-                    // inject a add in the extension with the id data 
-                    length = length + 1
-                    updateNoteLength(length)
-                    renderNotes()
-                    renderPagination()
-                    checkPagination()
+                    // Re-render from the array we just wrote; renderNotes
+                    // recomputes and displays the note count.
+                    await refreshNotesView(noteArr)
                 }
             });
         });

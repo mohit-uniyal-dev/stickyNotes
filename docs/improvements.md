@@ -41,6 +41,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Fixed a duplicate-listener bug in the All Notes sidebar and moved selection to event delegation. `toggleNoteContainerSelection` used to re-attach click/keydown handlers to every host card each time it ran — including after deletes, which do not rebuild the sidebar — so a card accumulated handlers and one click would select-then-deselect. Selection is now bound once via a delegated listener on the stable `.list_notes` container.
 - Added a minimize feature for injected notes: a header minimize button collapses a note into a single shared, self-organizing "docked tray" of pills at the bottom-right of the page (`scripts/content_script/minimizedTray.js`, its own isolated shadow root), instead of leaving multiple minimized notes floating and overlapping. Clicking a pill restores the note to its place. The minimized state is persisted via a new `minimized` note field and `updateMinimized` background handler, so a note left minimized returns to the tray after a reload; deleting a note also clears its pill.
 - Constrained note dragging to the viewport. Dragging had no bounds, so a note could be dropped fully off-screen and become unreachable. The drag handler now captures the element's rendered box (accounting for the `translate(-50%, -50%)` centering) on pointer-down and clamps each move so the whole note stays on screen; a note larger than the viewport pins to the top-left edge.
+- Reduced repeated storage reads in the popup. A single user action (open, add, delete, change page) now reads the notes array once and threads it through the render, pagination, and pagination-visibility helpers via a shared `refreshNotesView(preloaded)`, instead of each helper re-reading `chrome.storage`. Popup init went from ~4 reads to 1, and paging/add/delete from ~3–4 to 1. The helpers still read on their own when called without a preloaded array, so nothing else had to change.
 
 ## High Priority Bugs
 
@@ -135,13 +136,18 @@ Current status:
 
 ### 3. Reduce repeated storage reads
 
-Rendering, pagination, pin changes, and searches repeatedly call `UserLocalStorage.retriveNoteData`.
+Rendering, pagination, pin changes, and searches repeatedly call `UserLocalStorage.retrieveNoteData`.
 
 Recommended fix:
 
 - Load once per user action.
 - Pass the loaded array into render helpers.
 - Cache in memory per page and refresh after known mutations.
+
+Current status:
+
+- The popup render/pagination path now reads once per action and threads the loaded array through the helpers (`refreshNotesView`, plus optional `preloaded` parameters on `renderNotes`, `renderPagination`, `checkPagination`, `getTotalPages`, `getSameHostNameLength`).
+- The All Notes page (`tab.js`) and a few popup menu handlers (settings menu, pin/unpin all) still read independently per call.
 
 ### 4. Lazy-load heavy libraries where needed
 

@@ -3,7 +3,7 @@
     "message": "Stick it - web notes"
   },
   "appDescription": {
-    "message": "This handy Chrome extension allows you to create and save Stick it - web notes  directly on the websites you visit"
+    "message": "Add sticky notes to any web page and pick up right where you left off. Everything stays on your device."
   },
   "brandName": {
     "message": "Stick it - web notes"
@@ -21,10 +21,10 @@
     "message": "All Notes"
   },
   "pinAll": {
-    "message": "pin/unpin"
+    "message": "Pin or unpin note"
   },
   "unPinAll": {
-    "message": "Unpin All"
+    "message": "Unpin all"
   },
   "setLanguage": {
     "message": "Set language : English"
@@ -60,6 +60,6 @@
     "message": "Are you sure you want to remove all notes?"
   },
   "DisplayPin": {
-    "message": "Pin"
+    "message": "Pin all"
   }
 }

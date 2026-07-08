@@ -39,6 +39,7 @@ const EXCLUDE = new Set([
     "package-lock.json",
     "README.md",
     "PRIVACY.md",
+    "RELEASE.md",
 ]);
 
 /* 1) Never zip broken/unvalidated code --------------------------------- */

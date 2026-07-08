@@ -43,6 +43,7 @@ The following broad UI work has been completed and should not be treated as pend
 - Constrained note dragging to the viewport. Dragging had no bounds, so a note could be dropped fully off-screen and become unreachable. The drag handler now captures the element's rendered box (accounting for the `translate(-50%, -50%)` centering) on pointer-down and clamps each move so the whole note stays on screen; a note larger than the viewport pins to the top-left edge.
 - Reduced repeated storage reads in the popup. A single user action (open, add, delete, change page) now reads the notes array once and threads it through the render, pagination, and pagination-visibility helpers via a shared `refreshNotesView(preloaded)`, instead of each helper re-reading `chrome.storage`. Popup init went from ~4 reads to 1, and paging/add/delete from ~3–4 to 1. The helpers still read on their own when called without a preloaded array, so nothing else had to change.
 - Tightened content-script scope from `<all_urls>` to `http://*/*` and `https://*/*` (and matched the web-accessible-resources scope), and added `file:` to the unsupported-protocol list so local-file pages show the "notes cannot be added on this page" popup instead of a non-functional one.
+- Bumped the extension to **v1.2.0** and added a root `RELEASE.md` — a dependency-free pre-flight + smoke-test + store-submission checklist (excluded from the shipped zip via `tools/zip.mjs`).
 - Release-prep cleanups: removed the stale `lib/*` web-accessible-resources entry (there is no `lib/` folder), rewrote the extension description to a clean 103-character summary, and normalized the pin control labels ("Pin or unpin note" for a note, "Pin all" / "Unpin all" for the host toggle).
 - Added an optional, anonymous uninstall feedback survey. `scripts/custom_bgScripts/uninstallSurvey.js` registers a Google Forms URL via `chrome.runtime.setUninstallURL`, which Chrome opens after removal. No note content, page URLs, or identifiers are attached. This is the extension's only off-device data flow and is disclosed in `PRIVACY.md` and the store-listing data-usage notes. (Version/OS pre-fill is a documented follow-up that needs the form's `entry.*` field IDs.)
 - Added a first-run welcome page and adapted the store promo assets. `autoRef.js` now opens `stickyNote_html_page/welcome.html` on first install (only), a themed onboarding page (`styles/welcome.css`, built on the shared theme tokens) describing the actual note features — add, pin, drag/resize/color/minimize, and the All Notes page — with a CTA that opens All Notes. `docs/promo-tiles.html` was retooled to this project's palette (dark premium background with colorful sticky-note cards) and trimmed to just the marquee (1400×560) and small (440×280) promo tiles.
@@ -218,19 +219,9 @@ Recommended tests (still worth adding):
 - Unit tests for search escaping and highlighting.
 - Integration tests for popup add/delete/pin flows with mocked Chrome APIs.
 - Integration tests for All Notes edit/delete/search flows.
-- Manual extension smoke checklist for Chrome:
-  - Install extension unpacked.
-  - Add note on a normal webpage.
-  - Edit note content.
-  - Drag and resize note.
-  - Reload page and confirm restore behavior.
-  - Pin/unpin note.
-  - Change color.
-  - Delete one note.
-  - Delete all notes for a hostname.
-  - Open All Notes page.
-  - Search and edit from All Notes.
-  - Verify unsupported pages show error popup.
+The manual smoke test is now maintained as a full, up-to-date checklist in
+`RELEASE.md` (install, popup, injected note, restore-on-reload, All Notes,
+unsupported pages, and the uninstall survey), to be run before each release.
 
 ## Security And Privacy Improvements
 

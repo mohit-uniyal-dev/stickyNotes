@@ -116,27 +116,6 @@ class SimpleShadowDOM {
         return null;
     }
 
-    static updatePin(id) {
-        const containers = document.querySelectorAll('.model-notes');
-
-        for (const container of containers) {
-            const shadowRoot = container.shadowRoot;
-            const pinBtn = shadowRoot.querySelector(`[pinId="${id}"]`);
-
-            if (pinBtn) {
-                if (pinBtn.classList.contains('selected')) {
-                    pinBtn.classList.remove('selected');
-                    pinBtn.classList.add('disable');
-                } else {
-                    pinBtn.classList.add('selected');
-                    pinBtn.classList.remove('disable');
-                }
-
-                break;
-            }
-        }
-    }
-
     static hideAllElementsFromDom() {
         document.querySelectorAll('.model-notes').forEach(element => {
             element.dataset.originalDisplay = element.style.display;
@@ -265,6 +244,14 @@ const createCardAndUpdate = (note) => {
             const isBeingEdited = shadowRoot.activeElement === existingElement;
             if (!isBeingEdited && existingElement.textContent !== nextContent) {
                 existingElement.textContent = nextContent;
+            }
+
+            // Keep the on-page pin button in sync with the stored pin state so
+            // toggling the pin from the popup is reflected on the note itself.
+            const pinBtn = shadowRoot.querySelector(`[pinId="${id}"]`);
+            if (pinBtn) {
+                pinBtn.classList.toggle('selected', Boolean(note.enablePin));
+                pinBtn.classList.toggle('disable', !note.enablePin);
             }
         }
     });

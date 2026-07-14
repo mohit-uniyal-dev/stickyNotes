@@ -49,10 +49,35 @@ class UserLocalStorage {
         return this.setStorageValue({ notes: noteArr });
     }
 
-    // Current note schema version. Bump when the note shape changes so future
+    // Current note schema version. Bump when the note shape/semantics change so
     // migrations can detect and upgrade older stored notes.
+    // v2: `enablePin` now means "show this note site-wide (every page of the
+    // host)" rather than "restore at all". Every note persists on its exact
+    // page regardless; pinning is the opt-in for site-wide.
     static get NOTE_SCHEMA_VERSION() {
-        return 1;
+        return 2;
+    }
+
+    // One-time upgrade of stored notes to the current schema version. Idempotent
+    // and safe to call on every service-worker start.
+    static async migrateNotes() {
+        const notes = await this.retrieveNoteData();
+        let changed = false;
+
+        const migrated = notes.map((note) => {
+            if (note && note.schemaVersion === 2) {
+                return note;
+            }
+            changed = true;
+            // v1 -> v2: pre-v2 notes were "pinned by default" (which only meant
+            // restore-on-same-page). Under v2 that becomes site-wide, so reset
+            // them to page-specific to preserve their original behavior.
+            return { ...note, enablePin: false, schemaVersion: 2 };
+        });
+
+        if (changed) {
+            await this.setStorage(migrated);
+        }
     }
 
     // Single source of truth for a new note. Used by both the popup and the
@@ -77,7 +102,7 @@ class UserLocalStorage {
             url: url,
             content: '',
             title: 'Title',
-            enablePin: true,
+            enablePin: false,
             minimized: false,
             schemaVersion: UserLocalStorage.NOTE_SCHEMA_VERSION
         };

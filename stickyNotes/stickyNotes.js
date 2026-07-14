@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
             var activeTab = tabs[0];
 
-            if (note.hostName === hostName && note.url === url && note.enablePin) {
+            if (note.url === url || (note.enablePin && note.hostName === hostName)) {
                 sendMessageToTab(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
             }
         });
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (noteArr.length > 0) {
 
             noteArr.forEach((element, index) => {
-                if (element.hostName === hostName && element.url === url && element.enablePin) {
+                if (element.url === url || (element.enablePin && element.hostName === hostName)) {
                     injectPopUps(element)
                 }
             });
@@ -390,11 +390,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const id = pinBtn.dataset.noteId;
 
-
-            await chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-                var activeTab = tabs[0];
-                sendMessageToTab(activeTab.id, { "message": MESSAGE.UPDATE_PIN_IN_CONTENT_SCRIPT, "isPinEnable": enablePin, "id": id });
-            });
+            // Persist the pin change through the background directly. The
+            // background updates storage and then injects or removes the note on
+            // the active tab based on the new site-wide/page-specific rule.
+            chrome.runtime.sendMessage({ action: MESSAGE.ENABLE_PIN, isPinEnable: enablePin, id: id });
 
 
         });

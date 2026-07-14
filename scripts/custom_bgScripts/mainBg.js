@@ -245,19 +245,35 @@ chrome.runtime.onMessage.addListener(
 
             const note = updatedNotesArray.find(note => note.id === noteId);
 
-            // Only re-inject when the note actually exists, otherwise the
-            // content script would be asked to render an undefined note.
+            // Only act when the note actually exists, otherwise the content
+            // script would be asked to render an undefined note.
             if (note) {
                 chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-                    if (tabs.length > 0) {
-                        var activeTab = tabs[0];
-                        if (activeTab.id) {
-                            sendMessageToTab(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
-                        } else {
-                            console.error("No valid tab ID found.");
-                        }
+                    if (tabs.length === 0 || !tabs[0] || !tabs[0].id) {
+                        console.error("No active tab found for pin update.");
+                        return;
+                    }
+
+                    const activeTab = tabs[0];
+
+                    // Decide whether the note should be visible on the active
+                    // tab under the new pin state: it shows on its own exact
+                    // page always, and site-wide (same host) only when pinned.
+                    let shouldShow = false;
+                    try {
+                        const activeUrl = new URL(activeTab.url);
+                        shouldShow = note.url === activeUrl.href ||
+                            (Boolean(note.enablePin) && note.hostName === activeUrl.hostname);
+                    } catch (error) {
+                        console.warn('Unable to parse active tab URL for pin update.', error);
+                    }
+
+                    if (shouldShow) {
+                        sendMessageToTab(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
                     } else {
-                        console.error("No active tab found.");
+                        // Unpinned while viewing a different page of the host:
+                        // remove the now site-specific note from this page.
+                        sendMessageToTab(activeTab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: note.id });
                     }
                 })
             }

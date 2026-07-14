@@ -40,8 +40,7 @@ const MESSAGE = Object.freeze({
     // Content-script UI commands (`message`)
     START: 'start',
     INJECT_POPUPS: 'injectPopUps',
-    HIDE_STICKY_NOTES: 'hideStickyNotes',
-    UPDATE_PIN_IN_CONTENT_SCRIPT: 'updatePinInContentScript'
+    HIDE_STICKY_NOTES: 'hideStickyNotes'
 });
 
 /**

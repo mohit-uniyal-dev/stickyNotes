@@ -42,14 +42,15 @@ const getTabUrlContext = (tab) => {
     }
 };
 
-const isPinnedNoteForTab = (note, tabContext) => {
-    return Boolean(
-        note &&
-        tabContext &&
-        note.enablePin &&
-        note.hostName === tabContext.hostName &&
-        note.url === tabContext.href
-    );
+const shouldShowNoteOnTab = (note, tabContext) => {
+    if (!note || !tabContext) {
+        return false;
+    }
+    // A note always shows on its own exact page. A pinned note additionally
+    // shows on every page of the same host (site-wide).
+    const samePage = note.url === tabContext.href;
+    const siteWidePinned = Boolean(note.enablePin) && note.hostName === tabContext.hostName;
+    return samePage || siteWidePinned;
 };
 
 const isRestrictedHost = (tabContext) => {
@@ -89,7 +90,7 @@ const restorePinnedNotesForTab = async (tab) => {
     }
 
     const noteArr = await UserLocalStorage.retrieveNoteData();
-    const notesToRestore = noteArr.filter((note) => isPinnedNoteForTab(note, tabContext));
+    const notesToRestore = noteArr.filter((note) => shouldShowNoteOnTab(note, tabContext));
 
     notesToRestore.forEach((note) => {
         sendMessageToTab(tab.id, {

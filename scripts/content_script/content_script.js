@@ -50,17 +50,5 @@ chrome.runtime.onMessage.addListener(
             createCardAndUpdate(noteData)
         }
 
-        if (request.message === MESSAGE.UPDATE_PIN_IN_CONTENT_SCRIPT) {
-            const updatePin = request.isPinEnable
-            const noteId = request.id
-
-            chrome.runtime.sendMessage({ action: MESSAGE.ENABLE_PIN, isPinEnable: updatePin, id: noteId });
-
-            SimpleShadowDOM.updatePin(noteId)
-            // we can get all the details from the localstorage but right now we can use id
-
-
-        }
-
     }
 );

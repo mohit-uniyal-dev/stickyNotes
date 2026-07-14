@@ -90,6 +90,8 @@ Additional fields are added later by user interactions:
 - `width` and `height`: saved after resizing a note.
 - `color`: saved after choosing a note color.
 - `minimized`: whether the note is collapsed into the docked minimized tray; defaulted to `false` by `createNote` and toggled by the note's minimize button and tray restore.
+- `enablePin`: whether the note is shown site-wide (on every page of its host) in addition to its own page. Every note always restores on its own exact page; `enablePin` is the opt-in for site-wide visibility. New notes default to `false` (page-specific).
+- `schemaVersion`: the note schema version (currently `2`). A one-time `migrateNotes()` on service-worker start upgrades older notes, resetting pre-v2 notes to page-specific.
 
 Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`. Its read and write helpers return Promises and reject when `chrome.runtime.lastError` is present.
 
@@ -108,7 +110,7 @@ On `DOMContentLoaded`, `stickyNotes.js`:
 5. Filters notes by active tab hostname.
 6. Renders up to two notes per page in the popup list.
 7. Builds simple pagination.
-8. Injects only pinned notes that match the active tab hostname and exact active tab URL.
+8. Injects notes that should show on the active tab: any note whose exact URL matches the active tab, plus any pinned note whose hostname matches (site-wide).
 
 ### Add Note
 
@@ -146,13 +148,15 @@ Deleting a popup note:
 5. Closes any open All Notes tab by sending `removeTab` with title `"StickyNotes"`.
 6. Re-renders pagination.
 
-Pin/unpin from the popup sends:
+Pin/unpin from the popup sends the pin change straight to the background:
 
 ```js
-{ message: "updatePinInContentScript", isPinEnable, id }
+{ action: "enablePin", isPinEnable, id }
 ```
 
-The content script forwards that to the background as `enablePin` and toggles the note UI.
+The background updates storage, then injects or removes the note on the active
+tab based on the `samePage || (pinned && sameHost)` rule. The on-page pin
+control stays in visual sync with the stored state via `createCardAndUpdate`.
 
 ### Remove All For Current Hostname
 
@@ -194,11 +198,10 @@ The injected note UI is a themed Shadow DOM card with a header toolbar, add/colo
 The content script listener in `scripts/content_script/content_script.js` handles messages:
 
 - `start`: creates a new note in the page.
-- `injectPopUps`: injects or updates a pinned note.
+- `injectPopUps`: injects a note or updates an existing one (content and pin visual).
 - `removeElementFromDom`: removes a note element by id.
 - `hideStickyNotes`: hides or shows all injected note containers.
 - `updateContentInCard`: updates a note from the full-page All Notes editor.
-- `updatePinInContentScript`: updates pin state and forwards it to background storage.
 
 ## Injected Note Interactions
 
@@ -233,7 +236,7 @@ This file handles most runtime messages:
 - `removeTab`: closes tabs whose title matches the requested title.
 - `storePosition`: saves note drag position.
 - `updatePin`: updates pin state; deletes empty notes when closing them.
-- `enablePin`: updates pin state and re-injects the note into the active tab.
+- `enablePin`: updates pin state, then injects or removes the note on the active tab depending on whether it should still show there (same exact page, or pinned and same host).
 - `StoreAndUpdateWidthAndHeight`: saves note dimensions.
 - `addSelectedColor`: saves selected note color.
 - `updateMinimized`: saves whether a note is collapsed into the docked minimized tray.
@@ -246,7 +249,7 @@ When a content script sends `contentScriptInjected`, the background:
 
 1. Reads the sender tab from the message.
 2. Reads stored notes.
-3. Injects notes that match sender tab hostname, exact sender tab URL, and `enablePin === true`.
+3. Injects notes that should show on the sender tab: any note whose exact URL matches, plus any pinned note (`enablePin === true`) whose hostname matches (`shouldShowNoteOnTab`).
 
 When a tab finishes loading, the background:
 
@@ -254,7 +257,7 @@ When a tab finishes loading, the background:
 2. Sets the action popup to `stickyNote_html_page/error.html` for unsupported schemes, known internal pages, and the All Notes page.
 3. Sets the action popup back to `stickyNotes/stickyNotes.html` for supported pages.
 4. Reads stored notes.
-5. Injects pinned notes that match the tab hostname and exact tab URL.
+5. Injects the notes that should show on the tab (same exact URL, or pinned and same hostname).
 
 ### `autoRef.js`
 

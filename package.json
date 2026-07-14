@@ -1,6 +1,6 @@
 {
   "name": "stickyNotes",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Dev tooling for the stickyNotes browser extension (not shipped in the extension package).",
   "scripts": {

@@ -421,21 +421,21 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Send a message to the background script to remove the tab
                             chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
 
-                            // remove the element from the dom 
+                            // remove the element from the dom
                             chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
                                 var activeTab = tabs[0];
                                 sendMessageToTab(activeTab.id, { "action": MESSAGE.REMOVE_ELEMENT_FROM_DOM, "id": id });
                             });
 
-                            chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
-
                             const updateNote = await UserLocalStorage.retrieveNoteData()
-                            if (updateNote.length % 2 !== 0) {
-                                await changePage(currentPage - 1)
-                                await checkPagination(updateNote)
-                            } else {
-                                await refreshNotesView(updateNote)
+                            // Deleting the last note on a page leaves currentPage
+                            // pointing past the end, showing an empty list. Clamp
+                            // it to the new page count (min 1) before refreshing.
+                            const totalPages = await getTotalPages(updateNote)
+                            if (currentPage > totalPages) {
+                                currentPage = Math.max(totalPages, 1)
                             }
+                            await refreshNotesView(updateNote)
 
                         }
                     })

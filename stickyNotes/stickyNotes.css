@@ -302,11 +302,11 @@ svg {
 
 .note-header--global {
   background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to));
-  color: #ffffff;
+  color: var(--sn-global-title-text);
 }
 
 .note-header--global .icon-btn {
-  color: #ffffff;
+  color: var(--sn-global-title-text);
 }
 
 .note-header-label {

@@ -92,18 +92,18 @@ const MinimizedTray = (() => {
         /* Global note pill: the same reserved gradient + globe used on the note
            itself, so it stays identifiable while minimized. */
         .pill--global {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: #ffffff;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0a0b0d;
             border-color: transparent;
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.34);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.34);
         }
         .pill--global:hover {
-            box-shadow: 0 10px 26px rgba(79, 70, 229, 0.42);
+            box-shadow: 0 10px 26px rgba(217, 119, 6, 0.42);
         }
         .pill--global:focus-visible {
-            box-shadow: 0 0 0 3px rgba(139, 125, 255, 0.5);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.55);
         }
-        .pill--global .globe { color: #ffffff; }
+        .pill--global .globe { color: #0a0b0d; }
         @media (prefers-color-scheme: dark) {
             .pill {
                 background: #141518;
@@ -113,13 +113,13 @@ const MinimizedTray = (() => {
             }
             .pill:focus-visible { box-shadow: 0 0 0 3px rgba(245, 246, 247, 0.24); }
             .dot { background: #f5f6f7; }
-            /* Keep the global pill on its reserved gradient in dark mode too. */
+            /* Keep the global pill on its reserved golden gradient in dark mode too. */
             .pill--global {
-                background: linear-gradient(135deg, #4338ca, #6d28d9);
-                color: #ffffff;
+                background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                color: #0a0b0d;
                 border-color: transparent;
             }
-            .pill--global .globe { color: #ffffff; }
+            .pill--global .globe { color: #0a0b0d; }
         }
     `;
 

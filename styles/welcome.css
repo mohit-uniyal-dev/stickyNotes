@@ -210,7 +210,7 @@ body {
   align-items: center;
   background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to));
   border-radius: var(--sn-radius-md);
-  color: #ffffff;
+  color: var(--sn-global-title-text);
   display: flex;
   flex: 0 0 auto;
   height: 44px;

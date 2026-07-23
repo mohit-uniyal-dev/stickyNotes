@@ -458,11 +458,11 @@ svg {
 
 .card--global .heading {
   background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to)) !important;
-  color: #ffffff !important;
+  color: var(--sn-global-title-text) !important;
 }
 
 .card--global .heading .deleteNoteBtn {
-  color: #ffffff !important;
+  color: var(--sn-global-title-text) !important;
 }
 
 .note-card-meta {

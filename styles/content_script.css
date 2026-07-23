@@ -20,10 +20,12 @@
     --sn-note-default: #0a0b0d;
     --sn-note-title-text: #ffffff;
     /* Reserved identity for the single global note (not part of the note color
-       palette), so it reads as "shown on every site" at a glance. */
-    --sn-global-accent: #6d5efc;
-    --sn-global-title-from: #4f46e5;
-    --sn-global-title-to: #7c3aed;
+       palette), so it reads as "shown on every site" at a glance. A golden
+       header with dark text keeps it distinct from the mustard "yellow" note. */
+    --sn-global-accent: #d97706;
+    --sn-global-title-from: #fbbf24;
+    --sn-global-title-to: #f59e0b;
+    --sn-global-title-text: #0a0b0d;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,9 +40,10 @@
         --sn-primary: #f5f6f7;
         --sn-note-default: #24262c;
         --sn-note-title-text: #f5f6f7;
-        --sn-global-accent: #8b7dff;
-        --sn-global-title-from: #4338ca;
-        --sn-global-title-to: #6d28d9;
+        --sn-global-accent: #fbbf24;
+        --sn-global-title-from: #fbbf24;
+        --sn-global-title-to: #f59e0b;
+        --sn-global-title-text: #0a0b0d;
     }
 }
 
@@ -194,6 +197,7 @@ pre {
     content: "Write your note here…\APinned notes stay shown on this page;\A unpin (or close) to hide.";
     display: block;
     font-size: 13px;
+    font-style: italic;
     line-height: 1.5;
     pointer-events: none;
     white-space: pre-line;
@@ -333,14 +337,14 @@ svg {
 
 .scope-global .note-title {
     background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to));
-    color: #ffffff;
+    color: var(--sn-global-title-text);
     /* Columns: globe badge, heading, controls (the add button is hidden). */
     grid-template-columns: auto 1fr auto;
 }
 
 .scope-global .global-badge {
     align-items: center;
-    color: #ffffff;
+    color: inherit;
     display: inline-flex;
     justify-content: center;
     opacity: 0.95;

@@ -564,13 +564,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             try {
-                let globalNote = await UserLocalStorage.ensureGlobalNote(url)
-                // Opening the global note shows it: pin it (a pinned global note
-                // is shown on every site). No-op if it is already pinned.
-                globalNote = await UserLocalStorage.setGlobalNotePinned(true) || globalNote
-                // INJECT_POPUPS is create-or-update, so re-opening an existing
-                // global note never duplicates it on the page.
-                sendMessageToTab(activeTab.id, { message: MESSAGE.INJECT_POPUPS, noteData: globalNote })
+                const globalNote = await UserLocalStorage.ensureGlobalNote(url)
+                // Opening the global note shows it: pinning through the background
+                // marks it shown and broadcasts it to every tab (a pinned global
+                // note shows on every site), keeping all tabs in sync.
+                chrome.runtime.sendMessage({ action: MESSAGE.ENABLE_PIN, isPinEnable: true, id: globalNote.id })
                 await refreshNotesView()
             } catch (error) {
                 console.warn('Unable to create or open the global note.', error)

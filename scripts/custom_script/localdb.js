@@ -181,26 +181,6 @@ class UserLocalStorage {
         return globalNote;
     }
 
-    // Pin (show) or unpin (hide) the global note. Opening it from the popup pins
-    // it so it becomes visible; unpinning hides it everywhere. Returns the note.
-    static async setGlobalNotePinned(pinned) {
-        const notes = await this.retrieveNoteData();
-        let changed = false;
-
-        const updated = notes.map((note) => {
-            if (this.isGlobalNote(note) && Boolean(note.enablePin) !== Boolean(pinned)) {
-                changed = true;
-                return { ...note, enablePin: Boolean(pinned) };
-            }
-            return note;
-        });
-
-        if (changed) {
-            await this.setStorage(updated);
-        }
-
-        return updated.find((note) => this.isGlobalNote(note)) || null;
-    }
 
     static isEmptyNoteContent(content) {
         return String(content || '').replace(/\s+/g, '') === '';

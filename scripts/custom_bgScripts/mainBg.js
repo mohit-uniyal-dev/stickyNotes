@@ -24,6 +24,17 @@ const broadcastToAllTabs = (message, exceptTabId) => {
     });
 };
 
+// The global note's pin state (shown/hidden) applies to every tab, so pinning it
+// injects it everywhere and unpinning removes it everywhere. Tabs with no content
+// script (restricted/loading pages) are handled by sendMessageToTab.
+const broadcastGlobalVisibility = (note) => {
+    if (note.enablePin) {
+        broadcastToAllTabs({ message: MESSAGE.INJECT_POPUPS, noteData: note });
+    } else {
+        broadcastToAllTabs({ action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: note.id });
+    }
+};
+
 
 // one way communication between background and content script
 chrome.runtime.onMessage.addListener(
@@ -241,11 +252,12 @@ chrome.runtime.onMessage.addListener(
             // Closing (X) the global note hides it (unpin), like a normal note,
             // but the singleton is never deleted — even when empty — so it stays
             // saved and can be shown again from the popup. `isPinEnable` is false
-            // on close.
+            // on close. The shown/hidden change applies to every tab.
             if (UserLocalStorage.isGlobalNote(noteToUpdate)) {
                 const hiddenGlobal = notesArray.map(note =>
                     note.id === noteId ? { ...note, enablePin: isPinEnable } : note);
                 await UserLocalStorage.setStorage(hiddenGlobal);
+                broadcastGlobalVisibility(hiddenGlobal.find(note => note.id === noteId));
                 return true;
             }
 
@@ -292,7 +304,10 @@ chrome.runtime.onMessage.addListener(
 
             // Only act when the note actually exists, otherwise the content
             // script would be asked to render an undefined note.
-            if (note) {
+            if (note && UserLocalStorage.isGlobalNote(note)) {
+                // Pinning/unpinning the global note shows/hides it on every tab.
+                broadcastGlobalVisibility(note);
+            } else if (note) {
                 chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
                     if (tabs.length === 0 || !tabs[0] || !tabs[0].id) {
                         console.error("No active tab found for pin update.");

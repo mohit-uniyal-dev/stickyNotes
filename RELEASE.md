@@ -55,8 +55,9 @@ Do this on a clean profile / fresh load, in a normal **https** tab.
       add/color controls, but it **does** have a pin control); the popup lists it
       at the top. It starts **pinned** (shown on every site).
 - [ ] Open/reload a second, different site → the pinned global note is there too.
-- [ ] **Unpin** it → it is hidden everywhere (still in the popup list); **pin**
-      it again (popup card or Global Note button) → it shows on every site again.
+- [ ] With the global note open on **two tabs at once**: unpin it on one tab →
+      it disappears from **both** tabs live (no reload needed); pin it again
+      (popup card or Global Note button) → it reappears on **both** tabs.
 - [ ] Type on one site, switch to the other tab → the edit shows up (after the
       short debounce; no live per-keystroke sync expected).
 - [ ] Drag / resize it on one site → the other open instance moves/resizes to

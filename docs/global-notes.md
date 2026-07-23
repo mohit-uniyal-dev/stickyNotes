@@ -103,7 +103,10 @@ return note.url === href;             // pinned normal = its own page
 So an **unpinned** note (global or not) is hidden everywhere, a **pinned** global
 note shows on every supported site, and a **pinned** normal note shows on its own
 page. New global notes are created **pinned**; the popup **Global Note** button
-pins it (`setGlobalNotePinned(true)`) so opening it shows it everywhere.
+pins it through the background `enablePin` message. Because the global note's
+shown/hidden state applies everywhere, pin/unpin/close **broadcast to every tab**
+(`broadcastGlobalVisibility`): pinning injects it on all tabs, unpinning removes
+it from all tabs.
 
 `tabContext` is only constructed for **supported** pages — unsupported schemes
 (`chrome:`, `file:`, etc.), the Chrome Web Store, and the All Notes page bail to

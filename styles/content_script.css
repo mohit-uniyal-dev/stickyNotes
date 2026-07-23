@@ -336,11 +336,11 @@ svg {
 }
 
 /* The reserved theme owns the color, so the per-note color controls are hidden
-   for the global note. Pinning is meaningless for a note shown everywhere, and
-   the add button (which creates a normal page note) is confusing on it. */
+   for the global note. The add button (which creates a normal page note) is
+   confusing on it. The pin control stays: it toggles whether the global note
+   shows on every site (pinned) or only on its own page (unpinned). */
 .scope-global .add-btn,
 .scope-global .options,
-.scope-global .pin,
 .scope-global .color-palette {
     display: none !important;
 }

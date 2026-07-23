@@ -41,16 +41,22 @@ Do this on a clean profile / fresh load, in a normal **https** tab.
 - [ ] Drag by the title bar moves it; it **cannot** be dragged off-screen.
 - [ ] Resize works from each of the four edges.
 - [ ] Color palette (options ⋮) recolors the header and persists.
-- [ ] Pin / unpin works.
+- [ ] **Pin = shown, unpin = hidden:** unpin a note (its pin control or from the
+      popup card) → it disappears from the page but stays in the popup list;
+      pin it again → it reappears. Reloading shows only pinned notes.
+- [ ] Opening the popup does **not** bring back a note you closed/unpinned.
 - [ ] Minimize collapses the note into the docked tray pill (bottom-right);
       clicking the pill restores it to its place.
 - [ ] Clicking the title-bar buttons does not start a drag.
-- [ ] Close (X): removes an empty note; unpins a note that has content.
+- [ ] Close (X): removes an empty note; hides (unpins) a note that has content.
 
 ### Global note
-- [ ] Popup **Global Note** → a globe-marked, accent-themed note appears; it has
-      no add/color/pin controls; the popup lists it pinned at the top.
-- [ ] Open a second, different site → the same global note is already there.
+- [ ] Popup **Global Note** → a globe-marked, accent-themed note appears (no
+      add/color controls, but it **does** have a pin control); the popup lists it
+      at the top. It starts **pinned** (shown on every site).
+- [ ] Open/reload a second, different site → the pinned global note is there too.
+- [ ] **Unpin** it → it is hidden everywhere (still in the popup list); **pin**
+      it again (popup card or Global Note button) → it shows on every site again.
 - [ ] Type on one site, switch to the other tab → the edit shows up (after the
       short debounce; no live per-keystroke sync expected).
 - [ ] Drag / resize it on one site → the other open instance moves/resizes to
@@ -58,9 +64,9 @@ Do this on a clean profile / fresh load, in a normal **https** tab.
 - [ ] Minimize it on one site → it minimizes on the other open instance too (a
       globe-marked gradient pill in the tray); restoring on one restores both.
 - [ ] It does **not** appear on unsupported pages (chrome://, Web Store, file://).
-- [ ] Reload a site → the global note comes back in place.
-- [ ] Close (X) the global note → it is dismissed from **that page's** view only
-      (like a normal note), and returns on reload; other tabs are unaffected.
+- [ ] Reload a site → the pinned global note comes back in place.
+- [ ] Close (X) the global note → it is hidden (unpinned), like a normal note,
+      but is **not** deleted (still in the popup list to re-show).
 - [ ] Delete it (popup card or its All Notes card) → it disappears from every
       open tab and from the popup/All Notes list, and does not return on reload.
 - [ ] Host **Remove All** / **Pin-Unpin All** do **not** delete the shared

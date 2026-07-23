@@ -238,14 +238,14 @@ chrome.runtime.onMessage.addListener(
                 return true;
             }
 
-            // Closing (X) the global note behaves like closing a normal note:
-            // it only dismisses the note from the current tab's view (the
-            // content script already removed its element there). The shared note
-            // is not deleted or changed in storage, so it stays global and
-            // reappears on reload — just like a normal note returns on its page.
-            // Permanent removal is the explicit delete (popup card / All Notes),
-            // which removes it from every tab.
+            // Closing (X) the global note hides it (unpin), like a normal note,
+            // but the singleton is never deleted — even when empty — so it stays
+            // saved and can be shown again from the popup. `isPinEnable` is false
+            // on close.
             if (UserLocalStorage.isGlobalNote(noteToUpdate)) {
+                const hiddenGlobal = notesArray.map(note =>
+                    note.id === noteId ? { ...note, enablePin: isPinEnable } : note);
+                await UserLocalStorage.setStorage(hiddenGlobal);
                 return true;
             }
 

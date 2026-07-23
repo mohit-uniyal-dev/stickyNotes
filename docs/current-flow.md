@@ -90,17 +90,17 @@ Additional fields are added later by user interactions:
 - `width` and `height`: saved after resizing a note.
 - `color`: saved after choosing a note color.
 - `minimized`: whether the note is collapsed into the docked minimized tray; defaulted to `false` by `createNote` and toggled by the note's minimize button and tray restore.
-- `enablePin`: whether the note is shown site-wide (on every page of its host) in addition to its own page. Every note always restores on its own exact page; `enablePin` is the opt-in for site-wide visibility. New notes default to `false` (page-specific).
-- `scope`: `'page' | 'site' | 'global'`. `'global'` marks the single shared note shown on every supported site (see "Global Note" below); `'page'`/`'site'` mirror the `enablePin` model. New notes default to `'page'`.
-- `schemaVersion`: the note schema version (currently `3`). A one-time `migrateNotes()` on service-worker start upgrades older notes: pre-v2 notes reset to page-specific, and v2 notes gain an explicit `scope` (`'site'` if pinned, else `'page'`). Migration never produces a global note.
+- `enablePin`: whether the note is **shown**. Pinned (`true`) = visible; unpinned (`false`) = hidden (still saved and listed in the popup / All Notes, and can be shown again by pinning). A pinned normal note shows on its own page; a pinned global note shows on every site. New notes are created **pinned** (visible); closing a note unpins (hides) it.
+- `scope`: `'page' | 'global'`. `'global'` marks the single shared note that, when pinned, shows on every supported site (see "Global Note" below); everything else is `'page'` and shows on its own page when pinned. New notes default to `'page'`.
+- `schemaVersion`: the note schema version (currently `4`). A one-time `migrateNotes()` on service-worker start upgrades older notes; the v4 step sets `enablePin: true` on every existing note so notes that were previously always visible on their page stay visible under the new "pinned = shown" model.
 
 ### Global Note
 
-There is at most one **global note** (`scope: 'global'`), a singleton shown on every supported site rather than being bound to a page or host.
+There is at most one **global note** (`scope: 'global'`), a singleton that, when pinned, is shown on every site.
 
-- **Visibility** goes through the shared rule `UserLocalStorage.shouldShowNoteOnPage(note, href, hostName)` (a global note returns `true` on any supported page). Both background restore paths (`tabListener.js`, the `enablePin` handler in `mainBg.js`) and the popup use this one predicate.
+- **Visibility follows the same "pinned = shown" pin model as a normal note.** The shared rule `UserLocalStorage.shouldShowNoteOnPage` is: unpinned → hidden everywhere; pinned global → every site; pinned normal → its own page. Both background restore paths (`tabListener.js`, the `enablePin` handler in `mainBg.js`) and the popup use it. The popup **Global Note** button pins the global note (`setGlobalNotePinned(true)`) so opening it shows it everywhere.
 - **Sync** is eventual, not collaborative: after the debounced edit, the background broadcasts the change to every tab (`broadcastToAllTabs`) instead of matching by URL. Content edits, color changes, and deletion are broadcast. Position, size, and minimized state are also shared across all instances: dragging, resizing, or minimizing the global note on one tab mirrors to the others via `SYNC_GLOBAL_STATE` (content side `syncNoteState` / `MinimizedTray.syncMinimized`, applied without re-persisting so it never loops), and any tab reads the same values on load.
-- **Singleton + safety**: `UserLocalStorage.ensureGlobalNote(url)` returns the existing global note or creates one (never a second). The global note is excluded from empty-draft cleanup, from host `Remove All`, and from `Pin/Unpin All`. **Closing (X) the global note behaves like a normal note**: it only dismisses it from the current tab's view (the `updatePin` branch is a no-op for it), so it is not deleted and reappears on reload. Permanent removal is the explicit delete from the popup card or the All Notes page, which removes it from every tab and from storage.
+- **Singleton + safety**: `UserLocalStorage.ensureGlobalNote(url)` returns the existing global note or creates one (never a second). The global note is excluded from empty-draft cleanup, from host `Remove All`, and from `Pin/Unpin All`. **Closing (X) the global note hides it (unpin)** like a normal note, but the `updatePin` branch never deletes the singleton — even when empty — so it stays saved and can be shown again from the popup. Permanent removal is the explicit delete from the popup card or the All Notes page, which removes it from every tab and from storage.
 - **Position/size** are shared across all sites (it is one note object).
 
 Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`. Its read and write helpers return Promises and reject when `chrome.runtime.lastError` is present.
@@ -120,7 +120,7 @@ On `DOMContentLoaded`, `stickyNotes.js`:
 5. Filters notes by active tab hostname.
 6. Renders up to two notes per page in the popup list.
 7. Builds simple pagination.
-8. Injects notes that should show on the active tab: any note whose exact URL matches the active tab, plus any pinned note whose hostname matches (site-wide).
+8. Injects notes that should show on the active tab: pinned notes whose exact URL matches (plus the global note when it is pinned). Unpinned notes stay hidden, so opening the popup no longer resurrects a note you closed.
 
 ### Add Note
 
@@ -167,8 +167,9 @@ Pin/unpin from the popup sends the pin change straight to the background:
 ```
 
 The background updates storage, then injects or removes the note on the active
-tab based on the `samePage || (pinned && sameHost)` rule. The on-page pin
-control stays in visual sync with the stored state via `createCardAndUpdate`.
+tab based on the shared `shouldShowNoteOnPage` rule — pinning shows the note on
+the page, unpinning hides it. The on-page pin control stays in visual sync with
+the stored state via `createCardAndUpdate`.
 
 ### Remove All For Current Hostname
 
@@ -248,7 +249,7 @@ This file handles most runtime messages:
 - `removeTab`: closes tabs whose title matches the requested title.
 - `storePosition`: saves note drag position.
 - `updatePin`: updates pin state; deletes empty notes when closing them.
-- `enablePin`: updates pin state, then injects or removes the note on the active tab depending on whether it should still show there (same exact page, or pinned and same host).
+- `enablePin`: updates pin (shown/hidden) state, then injects the note on the active tab when it should now show (pinning shows it) or removes it when it should not (unpinning hides it).
 - `StoreAndUpdateWidthAndHeight`: saves note dimensions.
 - `addSelectedColor`: saves selected note color.
 - `updateMinimized`: saves whether a note is collapsed into the docked minimized tray.
@@ -261,7 +262,7 @@ When a content script sends `contentScriptInjected`, the background:
 
 1. Reads the sender tab from the message.
 2. Reads stored notes.
-3. Injects notes that should show on the sender tab via `shouldShowNoteOnTab` (which delegates to `UserLocalStorage.shouldShowNoteOnPage`): any note whose exact URL matches, any pinned note whose hostname matches (site-wide), plus the global note (every supported tab).
+3. Injects notes that should show on the sender tab via `shouldShowNoteOnTab` (which delegates to `UserLocalStorage.shouldShowNoteOnPage`): pinned notes whose exact URL matches, plus the global note when it is pinned (every supported tab). Unpinned notes are hidden.
 
 When a tab finishes loading, the background:
 
@@ -269,7 +270,7 @@ When a tab finishes loading, the background:
 2. Sets the action popup to `stickyNote_html_page/error.html` for unsupported schemes, known internal pages, and the All Notes page.
 3. Sets the action popup back to `stickyNotes/stickyNotes.html` for supported pages.
 4. Reads stored notes.
-5. Injects the notes that should show on the tab (same exact URL, or pinned and same hostname).
+5. Injects the notes that should show on the tab: pinned notes on their exact URL, plus the global note when it is pinned.
 
 ### `autoRef.js`
 

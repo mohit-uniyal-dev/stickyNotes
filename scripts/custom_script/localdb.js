@@ -57,8 +57,11 @@ class UserLocalStorage {
     // v3: introduces an explicit `scope` field ('page' | 'site' | 'global').
     // 'global' is a single shared note shown on every supported site; it is only
     // ever created explicitly, never produced by migration.
+    // v4: `enablePin` now means "shown" (pinned = visible, unpinned = hidden)
+    // rather than "site-wide". Every stored note used to be visible on its own
+    // page, so the migration pins them all to preserve that visibility.
     static get NOTE_SCHEMA_VERSION() {
-        return 3;
+        return 4;
     }
 
     static get GLOBAL_SCOPE() {
@@ -75,25 +78,19 @@ class UserLocalStorage {
             if (!note) {
                 return note;
             }
-            if (note.schemaVersion === 3 && typeof note.scope === 'string') {
+            if (note.schemaVersion === 4) {
                 return note;
             }
             changed = true;
 
-            // v1 -> v2: pre-v2 notes were "pinned by default" (which only meant
-            // restore-on-same-page). Under v2 that becomes site-wide, so reset
-            // them to page-specific to preserve their original behavior.
-            let enablePin = note.enablePin;
-            if (note.schemaVersion !== 2 && note.schemaVersion !== 3) {
-                enablePin = false;
-            }
-
-            // v2 -> v3: backfill an explicit scope. An already site-wide (pinned)
-            // note becomes 'site'; everything else 'page'. Global notes are only
+            // Backfill an explicit scope for pre-v3 notes. Global notes are only
             // created explicitly, so migration never yields one.
-            const scope = note.scope || (enablePin ? 'site' : 'page');
+            const scope = note.scope || 'page';
 
-            return { ...note, enablePin, scope, schemaVersion: 3 };
+            // v4: `enablePin` now means "shown". Every previously stored note was
+            // visible on its own page (visibility used to be pin-independent), so
+            // pin them all to keep them visible under the new model.
+            return { ...note, enablePin: true, scope, schemaVersion: 4 };
         });
 
         if (changed) {
@@ -123,21 +120,21 @@ class UserLocalStorage {
             url: url,
             content: '',
             title: 'Title',
-            enablePin: false,
+            // "Pinned" means "shown". A freshly added note is visible, so it is
+            // created pinned; closing/unpinning it hides it.
+            enablePin: true,
             minimized: false,
             scope: 'page',
             schemaVersion: UserLocalStorage.NOTE_SCHEMA_VERSION
         };
     }
 
-    // A global note is the single note shown on every supported site. It is
-    // created from a normal note but marked with the global scope; its
-    // `enablePin` stays false so the legacy host-pin UI/logic never treats it as
-    // a site pin (visibility comes from the scope, not the pin flag).
+    // A global note is the single note that, when pinned, is shown on every
+    // supported site. Created pinned (visible) like any other new note.
     static createGlobalNote(url) {
         const note = this.createNote(url);
         note.scope = this.GLOBAL_SCOPE;
-        note.enablePin = false;
+        note.enablePin = true;
         return note;
     }
 
@@ -147,18 +144,19 @@ class UserLocalStorage {
 
     // Single source of truth for "should this note render on this page?", shared
     // by the background restore paths and the popup so the rule cannot drift.
-    // A global note shows everywhere; otherwise a note shows on its exact page,
-    // and a site-wide (pinned) note also shows on every page of its host.
+    //
+    // Pin model: "pinned" means "shown". An unpinned note is hidden everywhere
+    // (it is still saved and reachable from the popup / All Notes list, and can
+    // be shown again by pinning it). A pinned normal note shows on its own page;
+    // a pinned global note shows on every site.
     static shouldShowNoteOnPage(note, href, hostName) {
-        if (!note) {
+        if (!note || !note.enablePin) {
             return false;
         }
         if (this.isGlobalNote(note)) {
             return true;
         }
-        const samePage = note.url === href;
-        const siteWidePinned = Boolean(note.enablePin) && note.hostName === hostName;
-        return samePage || siteWidePinned;
+        return note.url === href;
     }
 
     // The single global note, or null. Also the guard the creation path uses to
@@ -181,6 +179,27 @@ class UserLocalStorage {
         notes.push(globalNote);
         await this.setStorage(notes);
         return globalNote;
+    }
+
+    // Pin (show) or unpin (hide) the global note. Opening it from the popup pins
+    // it so it becomes visible; unpinning hides it everywhere. Returns the note.
+    static async setGlobalNotePinned(pinned) {
+        const notes = await this.retrieveNoteData();
+        let changed = false;
+
+        const updated = notes.map((note) => {
+            if (this.isGlobalNote(note) && Boolean(note.enablePin) !== Boolean(pinned)) {
+                changed = true;
+                return { ...note, enablePin: Boolean(pinned) };
+            }
+            return note;
+        });
+
+        if (changed) {
+            await this.setStorage(updated);
+        }
+
+        return updated.find((note) => this.isGlobalNote(note)) || null;
     }
 
     static isEmptyNoteContent(content) {

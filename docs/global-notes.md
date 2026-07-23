@@ -4,11 +4,13 @@ Status: **Implemented** (build order steps 1–7 complete)
 
 ## Summary
 
-A **global note** is a single sticky note that appears on every supported
-website instead of being bound to one page or one hostname. Its content is
-shared: editing it on one site reflects onto the instances open on other sites.
-It is visually distinct so the user can tell at a glance that a note is global
-rather than page- or site-scoped.
+A **global note** is a single sticky note that, when pinned, is shown on every
+supported website instead of being bound to one page. It follows the same pin
+model as a normal note under the "pinned = shown" rule: **pinned**, it shows on
+every site; **unpinned**, it is hidden everywhere (still saved and reachable from
+the popup / All Notes). Its content is shared: editing it on one site reflects
+onto the instances open on other sites. It is visually distinct so the user can
+tell at a glance that a note is global rather than page-scoped.
 
 ## Product decisions
 
@@ -89,18 +91,24 @@ Trade-off — see [Concurrency](#concurrency-known-limitation).
 
 ## Visibility (the gate)
 
-`shouldShowNoteOnTab` gets one branch, added in both its definition
-(`tabListener.js`) and the inline copy in the `ENABLE_PIN` handler (`mainBg.js`):
+The global note follows the **same "pinned = shown" model as a normal note**. All
+visibility funnels through `UserLocalStorage.shouldShowNoteOnPage`:
 
 ```js
-if (note.scope === 'global') return true; // any supported tab
+if (!note.enablePin) return false;    // unpinned = hidden (all note types)
+if (isGlobalNote(note)) return true;  // pinned global = every site
+return note.url === href;             // pinned normal = its own page
 ```
+
+So an **unpinned** note (global or not) is hidden everywhere, a **pinned** global
+note shows on every supported site, and a **pinned** normal note shows on its own
+page. New global notes are created **pinned**; the popup **Global Note** button
+pins it (`setGlobalNotePinned(true)`) so opening it shows it everywhere.
 
 `tabContext` is only constructed for **supported** pages — unsupported schemes
 (`chrome:`, `file:`, etc.), the Chrome Web Store, and the All Notes page bail to
-the error popup before any restore runs. So "return true" already means "every
-page where a note can actually work"; the global note will not try to inject on
-restricted pages.
+the error popup before any restore runs — so a pinned global note still cannot
+inject on restricted pages.
 
 ## Sync
 

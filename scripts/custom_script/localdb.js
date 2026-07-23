@@ -54,8 +54,15 @@ class UserLocalStorage {
     // v2: `enablePin` now means "show this note site-wide (every page of the
     // host)" rather than "restore at all". Every note persists on its exact
     // page regardless; pinning is the opt-in for site-wide.
+    // v3: introduces an explicit `scope` field ('page' | 'site' | 'global').
+    // 'global' is a single shared note shown on every supported site; it is only
+    // ever created explicitly, never produced by migration.
     static get NOTE_SCHEMA_VERSION() {
-        return 2;
+        return 3;
+    }
+
+    static get GLOBAL_SCOPE() {
+        return 'global';
     }
 
     // One-time upgrade of stored notes to the current schema version. Idempotent
@@ -65,14 +72,28 @@ class UserLocalStorage {
         let changed = false;
 
         const migrated = notes.map((note) => {
-            if (note && note.schemaVersion === 2) {
+            if (!note) {
+                return note;
+            }
+            if (note.schemaVersion === 3 && typeof note.scope === 'string') {
                 return note;
             }
             changed = true;
+
             // v1 -> v2: pre-v2 notes were "pinned by default" (which only meant
             // restore-on-same-page). Under v2 that becomes site-wide, so reset
             // them to page-specific to preserve their original behavior.
-            return { ...note, enablePin: false, schemaVersion: 2 };
+            let enablePin = note.enablePin;
+            if (note.schemaVersion !== 2 && note.schemaVersion !== 3) {
+                enablePin = false;
+            }
+
+            // v2 -> v3: backfill an explicit scope. An already site-wide (pinned)
+            // note becomes 'site'; everything else 'page'. Global notes are only
+            // created explicitly, so migration never yields one.
+            const scope = note.scope || (enablePin ? 'site' : 'page');
+
+            return { ...note, enablePin, scope, schemaVersion: 3 };
         });
 
         if (changed) {
@@ -104,8 +125,62 @@ class UserLocalStorage {
             title: 'Title',
             enablePin: false,
             minimized: false,
+            scope: 'page',
             schemaVersion: UserLocalStorage.NOTE_SCHEMA_VERSION
         };
+    }
+
+    // A global note is the single note shown on every supported site. It is
+    // created from a normal note but marked with the global scope; its
+    // `enablePin` stays false so the legacy host-pin UI/logic never treats it as
+    // a site pin (visibility comes from the scope, not the pin flag).
+    static createGlobalNote(url) {
+        const note = this.createNote(url);
+        note.scope = this.GLOBAL_SCOPE;
+        note.enablePin = false;
+        return note;
+    }
+
+    static isGlobalNote(note) {
+        return Boolean(note) && note.scope === this.GLOBAL_SCOPE;
+    }
+
+    // Single source of truth for "should this note render on this page?", shared
+    // by the background restore paths and the popup so the rule cannot drift.
+    // A global note shows everywhere; otherwise a note shows on its exact page,
+    // and a site-wide (pinned) note also shows on every page of its host.
+    static shouldShowNoteOnPage(note, href, hostName) {
+        if (!note) {
+            return false;
+        }
+        if (this.isGlobalNote(note)) {
+            return true;
+        }
+        const samePage = note.url === href;
+        const siteWidePinned = Boolean(note.enablePin) && note.hostName === hostName;
+        return samePage || siteWidePinned;
+    }
+
+    // The single global note, or null. Also the guard the creation path uses to
+    // avoid ever producing a second one.
+    static async getGlobalNote() {
+        const notes = await this.retrieveNoteData();
+        return notes.find((note) => this.isGlobalNote(note)) || null;
+    }
+
+    // Return the existing global note, or create, persist, and return a new one.
+    // Guarantees the singleton: never adds a second global note.
+    static async ensureGlobalNote(url) {
+        const notes = await this.retrieveNoteData();
+        const existing = notes.find((note) => this.isGlobalNote(note));
+        if (existing) {
+            return existing;
+        }
+
+        const globalNote = this.createGlobalNote(url);
+        notes.push(globalNote);
+        await this.setStorage(notes);
+        return globalNote;
     }
 
     static isEmptyNoteContent(content) {
@@ -129,13 +204,16 @@ class UserLocalStorage {
 
     static async removeEmptyNotesForUrl(url) {
         const notes = await this.retrieveNoteData();
-        const removedNotes = notes.filter((note) => note.url === url && this.isEmptyNote(note));
+        // The global note is shared across every site and is never cleaned up as
+        // an empty draft, so it survives closing/reloading the tab it was made on.
+        const isRemovable = (note) => note.url === url && this.isEmptyNote(note) && !this.isGlobalNote(note);
+        const removedNotes = notes.filter(isRemovable);
 
         if (removedNotes.length === 0) {
             return [];
         }
 
-        const updatedNotes = notes.filter((note) => !(note.url === url && this.isEmptyNote(note)));
+        const updatedNotes = notes.filter((note) => !isRemovable(note));
         await this.setStorage(updatedNotes);
 
         return removedNotes;
@@ -143,13 +221,14 @@ class UserLocalStorage {
 
     static async removeAllEmptyNotes() {
         const notes = await this.retrieveNoteData();
-        const removedNotes = notes.filter((note) => this.isEmptyNote(note));
+        const isRemovable = (note) => this.isEmptyNote(note) && !this.isGlobalNote(note);
+        const removedNotes = notes.filter(isRemovable);
 
         if (removedNotes.length === 0) {
             return [];
         }
 
-        const updatedNotes = notes.filter((note) => !this.isEmptyNote(note));
+        const updatedNotes = notes.filter((note) => !isRemovable(note));
         await this.setStorage(updatedNotes);
 
         return removedNotes;

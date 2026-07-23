@@ -91,7 +91,17 @@ Additional fields are added later by user interactions:
 - `color`: saved after choosing a note color.
 - `minimized`: whether the note is collapsed into the docked minimized tray; defaulted to `false` by `createNote` and toggled by the note's minimize button and tray restore.
 - `enablePin`: whether the note is shown site-wide (on every page of its host) in addition to its own page. Every note always restores on its own exact page; `enablePin` is the opt-in for site-wide visibility. New notes default to `false` (page-specific).
-- `schemaVersion`: the note schema version (currently `2`). A one-time `migrateNotes()` on service-worker start upgrades older notes, resetting pre-v2 notes to page-specific.
+- `scope`: `'page' | 'site' | 'global'`. `'global'` marks the single shared note shown on every supported site (see "Global Note" below); `'page'`/`'site'` mirror the `enablePin` model. New notes default to `'page'`.
+- `schemaVersion`: the note schema version (currently `3`). A one-time `migrateNotes()` on service-worker start upgrades older notes: pre-v2 notes reset to page-specific, and v2 notes gain an explicit `scope` (`'site'` if pinned, else `'page'`). Migration never produces a global note.
+
+### Global Note
+
+There is at most one **global note** (`scope: 'global'`), a singleton shown on every supported site rather than being bound to a page or host.
+
+- **Visibility** goes through the shared rule `UserLocalStorage.shouldShowNoteOnPage(note, href, hostName)` (a global note returns `true` on any supported page). Both background restore paths (`tabListener.js`, the `enablePin` handler in `mainBg.js`) and the popup use this one predicate.
+- **Sync** is eventual, not collaborative: after the debounced edit, the background broadcasts the change to every tab (`broadcastToAllTabs`) instead of matching by URL. Content edits, color changes, and deletion are broadcast. Position, size, and minimized state are also shared across all instances: dragging, resizing, or minimizing the global note on one tab mirrors to the others via `SYNC_GLOBAL_STATE` (content side `syncNoteState` / `MinimizedTray.syncMinimized`, applied without re-persisting so it never loops), and any tab reads the same values on load.
+- **Singleton + safety**: `UserLocalStorage.ensureGlobalNote(url)` returns the existing global note or creates one (never a second). The global note is excluded from empty-draft cleanup, from host `Remove All`, and from `Pin/Unpin All`. Because there is only one shared instance, **closing (X) the global note on any page deletes the singleton and removes it from every tab** (handled in the `updatePin` branch, which deletes it and broadcasts `removeElementFromDom`).
+- **Position/size** are shared across all sites (it is one note object).
 
 Shared storage access is wrapped by `UserLocalStorage` in `scripts/custom_script/localdb.js`. Its read and write helpers return Promises and reject when `chrome.runtime.lastError` is present.
 
@@ -137,7 +147,9 @@ Popup note cards show:
 - Pin/unpin button.
 - Header color if the note has a saved `color`.
 
-The popup shell includes a themed brand mark, settings icon button, primary Add Note action, count row, delete-all action, note cards, and pagination.
+The popup shell includes a themed brand mark, settings icon button, primary Add Note action, a secondary Global Note action, count row, delete-all action, note cards, and pagination.
+
+A **Global Note** button (below Add Note) creates the singleton global note if it does not exist yet — via `UserLocalStorage.ensureGlobalNote` — otherwise re-opens it on the active tab. The global note is rendered as a distinct, globe-marked card pinned to the top of the list on every site, and is kept out of the per-host note count and pagination.
 
 Deleting a popup note:
 
@@ -249,7 +261,7 @@ When a content script sends `contentScriptInjected`, the background:
 
 1. Reads the sender tab from the message.
 2. Reads stored notes.
-3. Injects notes that should show on the sender tab: any note whose exact URL matches, plus any pinned note (`enablePin === true`) whose hostname matches (`shouldShowNoteOnTab`).
+3. Injects notes that should show on the sender tab via `shouldShowNoteOnTab` (which delegates to `UserLocalStorage.shouldShowNoteOnPage`): any note whose exact URL matches, any pinned note whose hostname matches (site-wide), plus the global note (every supported tab).
 
 When a tab finishes loading, the background:
 
@@ -261,7 +273,7 @@ When a tab finishes loading, the background:
 
 ### `autoRef.js`
 
-On extension install or update, it reloads all open tabs so the content scripts are available immediately. On first install only (`reason === "install"`), it also opens `stickyNote_html_page/welcome.html`, a themed onboarding page (styled with `styles/welcome.css` from the shared tokens) whose only action opens the All Notes page.
+On extension install or update, it reloads all open tabs so the content scripts are available immediately. On first install (`reason === "install"`), it opens `stickyNote_html_page/welcome.html`, a themed onboarding page (styled with `styles/welcome.css` from the shared tokens). On a version update (`reason === "update"` with a changed `previousVersion`), it opens the welcome page at `#whats-new` so existing users land on the "What's new" section describing the latest changes.
 
 ### `removeTabListener.js`
 
@@ -283,7 +295,7 @@ At startup, `tab.js`:
 
 Main page features:
 
-- Sidebar groups notes by hostname.
+- Sidebar groups notes by hostname, with the global note pinned as its own globe-marked "Global note" card at the top (rendered by `renderGlobalGroup`, selected via `renderMainGlobalNote`). Deleting the global note from its main card also removes this pinned sidebar card.
 - Search filters by hostname or content.
 - Search preserves the selected hostname when it still exists in the filtered results, otherwise it selects the first matching hostname.
 - Matching text is highlighted with `<mark>`.

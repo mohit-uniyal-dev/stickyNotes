@@ -29,6 +29,10 @@ const getUniqueHostNotes = (notes) => {
     const uniqueSet = new Set();
 
     return notes.filter((note) => {
+        // The global note is surfaced as its own pinned group, not under a host.
+        if (UserLocalStorage.isGlobalNote(note)) {
+            return false;
+        }
         if (uniqueSet.has(note.hostName)) {
             return false;
         }
@@ -37,6 +41,8 @@ const getUniqueHostNotes = (notes) => {
         return true;
     });
 };
+
+const getGlobalNoteFrom = (notes) => notes.find((note) => UserLocalStorage.isGlobalNote(note)) || null;
 
 const findSidebarItemByHost = (hostName) => {
     if (!hostName) {
@@ -189,6 +195,20 @@ const NAVIGATION_ICON_PATHS = [
         'stroke-width': '2',
         'stroke-linecap': 'round',
         'stroke-linejoin': 'round'
+    }
+];
+
+// Stroked (wireframe) globe used to mark the global note group and card.
+const GLOBE_ICON_PATHS = [
+    {
+        d: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',
+        stroke: 'currentColor',
+        'stroke-width': '1.9'
+    },
+    {
+        d: 'M3 12h18M12 3c2.5 2.4 3.8 5.6 3.8 9S14.5 18.6 12 21c-2.5-2.4-3.8-5.6-3.8-9S9.5 5.4 12 3Z',
+        stroke: 'currentColor',
+        'stroke-width': '1.7'
     }
 ];
 
@@ -360,7 +380,72 @@ const createMainNoteCard = (note, query) => {
 
 
 
-// logic 
+// The global note gets its own pinned sidebar card (globe + label), separate
+// from the host groups. It has no host actions; deletion happens from its main
+// note card (which broadcasts removal to every tab).
+const createGlobalSidebarCard = (note) => {
+    const noteContainer = createElement('div', 'd-flex flex-column border border-light noteContainer noteContainer--global');
+    noteContainer.id = note.id;
+    noteContainer.dataset.scope = 'global';
+    noteContainer.setAttribute('role', 'button');
+    noteContainer.setAttribute('tabindex', '0');
+    noteContainer.setAttribute('aria-pressed', 'false');
+    noteContainer.setAttribute('aria-label', 'Show the global note');
+
+    const header = createElement('div', 'note-header px-3 py-3 d-flex justify-content-between align-items-center');
+
+    const label = createElement('div', 'cursor-pointer hostName global-host-label');
+    const badge = createSvgIcon({ className: 'global-host-globe', paths: GLOBE_ICON_PATHS });
+    badge.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span');
+    text.textContent = 'Global note';
+    label.append(badge, text);
+
+    header.appendChild(label);
+    noteContainer.appendChild(header);
+
+    return noteContainer;
+};
+
+// Prepend (or refresh) the pinned global-note card at the top of the sidebar.
+const renderGlobalGroup = (notes) => {
+    const sidebarList = document.querySelector('.list_notes');
+    if (!sidebarList) {
+        return;
+    }
+
+    const stale = sidebarList.querySelector('.noteContainer--global');
+    if (stale) {
+        stale.remove();
+    }
+
+    const globalNote = getGlobalNoteFrom(notes);
+    if (globalNote) {
+        sidebarList.prepend(createGlobalSidebarCard(globalNote));
+    }
+};
+
+const renderMainGlobalNote = (notes) => {
+    const contentContainer = document.querySelector('.contentContainer');
+    contentContainer.innerHTML = '';
+
+    const globalNote = getGlobalNoteFrom(notes);
+    if (!globalNote) {
+        renderMainEmptyState('No global note');
+        return;
+    }
+
+    const card = createMainNoteCard(globalNote);
+    card.classList.add('card--global');
+    contentContainer.appendChild(card);
+
+    tippy('.deleteNoteBtn', {
+        content: getDeleteDes(),
+        placement: 'bottom'
+    });
+};
+
+// logic
 const insertContentInSideBar = (note, query) => {
     console.log(query, 'check query')
 
@@ -412,15 +497,21 @@ const selectHostCard = async (noteContainer) => {
         noteContainer.classList.add('select');
         selectedNoteContainer = noteContainer;
 
-        const hostName = noteContainer.getAttribute('hostName');
         const storeArr = await UserLocalStorage.retrieveNoteData();
-        const searchBox = document.getElementById('searchBox');
-        const hasEmptySearch = searchBox.value.trim() === '';
 
-        if (hasEmptySearch === true) {
-            renderMainNotesForHost(storeArr, hostName);
+        if (noteContainer.dataset.scope === 'global') {
+            // The global note is not host-scoped; render it directly.
+            renderMainGlobalNote(storeArr);
         } else {
-            insertFilterNote(searchBox.value);
+            const hostName = noteContainer.getAttribute('hostName');
+            const searchBox = document.getElementById('searchBox');
+            const hasEmptySearch = searchBox.value.trim() === '';
+
+            if (hasEmptySearch === true) {
+                renderMainNotesForHost(storeArr, hostName);
+            } else {
+                insertFilterNote(searchBox.value);
+            }
         }
 
         flag = true;
@@ -459,7 +550,9 @@ const setupSidebarDelegation = () => {
 };
 
 const toggleNoteContainerSelection = () => {
-    const noteContainers = document.querySelectorAll('.noteContainer');
+    // Default host selection only considers host cards; the pinned global card
+    // is selected explicitly by the user, never auto-selected here.
+    const noteContainers = document.querySelectorAll('.noteContainer:not(.noteContainer--global)');
 
     if (noteContainers.length === 0) {
         selectedNoteContainer = null;
@@ -538,6 +631,7 @@ const eventListenerForDeleteBtn = () => {
                     cardToRemove.remove();
 
                     const noteArr = await UserLocalStorage.retrieveNoteData()
+                    const deletedNote = noteArr.find(note => note.id === id)
                     const filerArr = noteArr.filter(note => note.id !== id)
                     await UserLocalStorage.setStorage(filerArr)
 
@@ -546,6 +640,19 @@ const eventListenerForDeleteBtn = () => {
                             sendMessageToTab(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: id });
                         });
                     });
+
+                    // Deleting the global note removes its pinned sidebar card too,
+                    // so the sidebar does not keep a stale entry.
+                    if (UserLocalStorage.isGlobalNote(deletedNote)) {
+                        const globalCard = document.querySelector('.noteContainer--global');
+                        if (globalCard) {
+                            if (selectedNoteContainer === globalCard) {
+                                selectedNoteContainer = null;
+                            }
+                            globalCard.remove();
+                        }
+                    }
+
                     toggleNoteContainerSelection()
 
                 } else {
@@ -644,6 +751,8 @@ const filterNotes = async (query) => {
         selectedNoteContainer = null;
         renderSidebarEmptyState(query.trim() === '' ? 'No notes saved' : 'No matching sites');
         renderMainEmptyState(query.trim() === '' ? 'No notes saved' : 'No matching notes');
+        // The global note stays pinned at the top regardless of the query.
+        renderGlobalGroup(notesData);
         flag = false;
         return;
     }
@@ -656,7 +765,6 @@ const filterNotes = async (query) => {
     const hostName = noteArr.some(note => note.hostName === previousHostName) ? previousHostName : firstMatchingHostName;
     selectSidebarItem(hostName);
 
-    console.log(filteredNotes, 'check filteredNote')
     renderMainNotesForHost(filteredNotes, hostName, query);
 
     flag = false;
@@ -665,6 +773,9 @@ const filterNotes = async (query) => {
     eventListenerForDeleteBtn();
     eventListenerForDeleteAllHostNote();
     toggleNoteContainerSelection();
+
+    // Keep the global note pinned at the top of the sidebar after the rebuild.
+    renderGlobalGroup(notesData);
 };
 
 const eventListenerForDeleteAllHostNote = () => {
@@ -711,20 +822,39 @@ const handleCardData = async () => {
 
     if (notesData) {
         const noteArr = getUniqueHostNotes(notesData);
+        const globalNote = getGlobalNoteFrom(notesData);
 
-        if (noteArr.length === 0) {
+        if (noteArr.length === 0 && !globalNote) {
             selectedNoteContainer = null;
             renderSidebarEmptyState('No notes saved');
             renderMainEmptyState('No notes saved');
         }
 
         noteArr.forEach(note => {
-            //    for side bar 
+            //    for side bar
             insertContentInSideBar(note)
         });
 
         if (noteArr.length > 0) {
             toggleNoteContainerSelection()
+        }
+
+        // Pin the global note's card to the top of the sidebar (after host
+        // selection so it never becomes the default host).
+        renderGlobalGroup(notesData);
+
+        // Ensure delegated sidebar selection is bound even when there are no
+        // host cards (global note only), since toggleNoteContainerSelection —
+        // which normally binds it — is skipped in that case.
+        setupSidebarDelegation();
+
+        // If the global note is the only note, select it by default so the page
+        // is not left blank.
+        if (noteArr.length === 0 && globalNote) {
+            const globalCard = document.querySelector('.noteContainer--global');
+            if (globalCard) {
+                selectHostCard(globalCard);
+            }
         }
 
         document.addEventListener('click', (event) => {

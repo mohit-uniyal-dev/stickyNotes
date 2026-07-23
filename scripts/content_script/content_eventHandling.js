@@ -98,11 +98,15 @@ const eventListenerForNote = (shadowRoot, container, noteContainer) => {
             const textAreaEl = shadowRoot.querySelector('.textarea');
             const noteId = textAreaEl.id;
             const colorClass = Array.from(noteTitleEl.classList).find((cls) => cls.startsWith('color-'));
+            // The global note keeps its identity while minimized, so pass its
+            // scope through to the tray pill.
+            const isGlobal = noteContainer.classList.contains('scope-global');
 
             MinimizedTray.minimize({
                 id: noteId,
                 content: textAreaEl.textContent,
-                color: colorClass ? colorClass.replace('color-', '') : ''
+                color: colorClass ? colorClass.replace('color-', '') : '',
+                scope: isGlobal ? 'global' : undefined
             });
             chrome.runtime.sendMessage({ action: MESSAGE.UPDATE_MINIMIZED, id: noteId, minimized: true });
         });

@@ -50,5 +50,9 @@ chrome.runtime.onMessage.addListener(
             createCardAndUpdate(noteData)
         }
 
+        if (request.action === MESSAGE.SYNC_GLOBAL_STATE) {
+            syncNoteState(request.note)
+        }
+
     }
 );

@@ -1,18 +1,31 @@
 class SimpleShadowDOM {
     static getHtmlTemplate(note) {
         const id = note.id;
+        const isGlobal = note.scope === 'global';
         const pinClass = note.enablePin ? 'selected' : 'disable';
-        const colorClass = note.color ? `color-${note.color}` : '';
+        // A global note carries a reserved theme, so it ignores any per-note
+        // color class and gets the scope-global hook instead.
+        const colorClass = (!isGlobal && note.color) ? `color-${note.color}` : '';
+        const scopeClass = isGlobal ? 'scope-global' : '';
+        const headingLabel = isGlobal ? 'Global note' : 'Stick it';
+        const globeBadge = isGlobal ? `
+                <span class="global-badge" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M3 12h18M12 3c2.5 2.4 3.8 5.6 3.8 9S14.5 18.6 12 21c-2.5-2.4-3.8-5.6-3.8-9S9.5 5.4 12 3Z" stroke="currentColor" stroke-width="1.7"/>
+                    </svg>
+                </span>` : '';
 
         return `
-        <div uniqueId="${id}" class="note-container">
+        <div uniqueId="${id}" class="note-container ${scopeClass}">
             <div class="note-title ${colorClass}">
                 <button class="note-action add-btn" type="button" aria-label="Add note">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
                 </button>
-                <span class="heading">Stick it</span>
+                ${globeBadge}
+                <span class="heading">${headingLabel}</span>
                 <div class="dropdown">
                     <button id="options" class="note-action options" type="button" aria-label="Note color">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -253,6 +266,21 @@ const createCardAndUpdate = (note) => {
                 pinBtn.classList.toggle('selected', Boolean(note.enablePin));
                 pinBtn.classList.toggle('disable', !note.enablePin);
             }
+
+            // Keep the header color in sync so a color change echoed from another
+            // tab (notably the global note, whose recolors are broadcast) updates
+            // an already-rendered note. Global notes keep their reserved theme and
+            // ignore per-note colors.
+            const noteTitle = shadowRoot.querySelector('.note-title');
+            if (noteTitle && note.scope !== 'global') {
+                noteTitle.classList.remove(
+                    'color-red', 'color-yellow', 'color-green',
+                    'color-grey', 'color-purple', 'color-pink', 'color-default'
+                );
+                if (note.color) {
+                    noteTitle.classList.add(`color-${note.color}`);
+                }
+            }
         }
     });
 
@@ -263,4 +291,30 @@ const createCardAndUpdate = (note) => {
 
 const injectCards = (noteData) => {
     createCardAndUpdate(noteData);
+};
+
+// Apply the global note's shared position, size, and minimized state that
+// arrived from another tab, so every open instance stays in sync. Applies only
+// to an existing note element (no-op if this tab has no window for the note),
+// and does not persist — the originating tab already saved the change.
+const syncNoteState = (note) => {
+    if (!note || !note.id) {
+        return;
+    }
+
+    const host = SimpleShadowDOM.getHostById(note.id);
+    if (host && host.shadowRoot) {
+        const container = host.shadowRoot.querySelector('.note-container');
+        if (container) {
+            if (note.position) {
+                if (note.position.left) container.style.left = note.position.left;
+                if (note.position.top) container.style.top = note.position.top;
+            }
+            if (typeof note.width === 'number') container.style.width = `${note.width}px`;
+            if (typeof note.height === 'number') container.style.height = `${note.height}px`;
+        }
+    }
+
+    // Mirror the minimized/restored state (hide/show the window and pill).
+    MinimizedTray.syncMinimized(note);
 };

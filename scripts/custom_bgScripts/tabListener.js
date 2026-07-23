@@ -46,11 +46,12 @@ const shouldShowNoteOnTab = (note, tabContext) => {
     if (!note || !tabContext) {
         return false;
     }
-    // A note always shows on its own exact page. A pinned note additionally
-    // shows on every page of the same host (site-wide).
-    const samePage = note.url === tabContext.href;
-    const siteWidePinned = Boolean(note.enablePin) && note.hostName === tabContext.hostName;
-    return samePage || siteWidePinned;
+    // Delegate to the shared rule so page/site/global visibility stays in one
+    // place. A global note shows on every supported tab; a normal note shows on
+    // its exact page, and a pinned note also shows site-wide on its host.
+    // `tabContext` is only built for supported pages, so "global shows
+    // everywhere" already excludes restricted/internal pages.
+    return UserLocalStorage.shouldShowNoteOnPage(note, tabContext.href, tabContext.hostName);
 };
 
 const isRestrictedHost = (tabContext) => {

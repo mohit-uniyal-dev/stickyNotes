@@ -9,6 +9,21 @@ const isFiniteNumber = (value) => typeof value === 'number' && Number.isFinite(v
 const isPlainObject = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
 const ALLOWED_NOTE_COLORS = new Set(['red', 'yellow', 'green', 'grey', 'purple', 'pink', 'default']);
 
+// A global note is open on many tabs at once, so URL-matched echo cannot reach
+// the other instances. Broadcast the message to every tab instead; the shared
+// sendMessageToTab helper already swallows the benign "receiving end does not
+// exist" rejection for tabs with no content script (restricted/loading pages).
+const broadcastToAllTabs = (message, exceptTabId) => {
+    chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+            if (tab.id === exceptTabId) {
+                return;
+            }
+            sendMessageToTab(tab.id, message);
+        });
+    });
+};
+
 
 // one way communication between background and content script
 chrome.runtime.onMessage.addListener(
@@ -69,14 +84,19 @@ chrome.runtime.onMessage.addListener(
             // Save the updated array back to local storage
             await UserLocalStorage.setStorage(newArray);
 
-            // Query all tabs to find the one you want to send the message to
-            chrome.tabs.query({}, function (tabs) {
-                tabs.forEach(tab => {
-                    if (tab.url === noteToFind.url) {
-                        sendMessageToTab(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteToFind.id });
-                    }
+            // The global note is on every tab, so its removal must reach all of
+            // them; a page/site note only needs to be pulled from tabs on its URL.
+            if (UserLocalStorage.isGlobalNote(noteToFind)) {
+                broadcastToAllTabs({ action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteToFind.id });
+            } else {
+                chrome.tabs.query({}, function (tabs) {
+                    tabs.forEach(tab => {
+                        if (tab.url === noteToFind.url) {
+                            sendMessageToTab(tab.id, { action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteToFind.id });
+                        }
+                    });
                 });
-            });
+            }
 
             // Send a response back if needed
             sendResponse({ success: true });
@@ -106,18 +126,24 @@ chrome.runtime.onMessage.addListener(
                 // upadte in local bg
                 await UserLocalStorage.setStorage(updatedNoteArr);
 
-                // Push the update to other tabs showing this page, but skip the
+                // Push the update to other tabs showing this note, but skip the
                 // tab that originated the edit — echoing its own change back
                 // needlessly re-renders (and can disturb the caret of) the note
-                // being edited.
+                // being edited. A global note lives on every tab, so it
+                // broadcasts everywhere; a page/site note only reaches tabs on
+                // its own URL.
                 const senderTabId = sender && sender.tab ? sender.tab.id : null;
-                chrome.tabs.query({}, function (tabs) {
-                    tabs.forEach(tab => {
-                        if (tab.url === noteToFind.url && tab.id !== senderTabId) {
-                            sendMessageToTab(tab.id, { action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: noteToFind });
-                        }
+                if (UserLocalStorage.isGlobalNote(noteToFind)) {
+                    broadcastToAllTabs({ action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: noteToFind }, senderTabId);
+                } else {
+                    chrome.tabs.query({}, function (tabs) {
+                        tabs.forEach(tab => {
+                            if (tab.url === noteToFind.url && tab.id !== senderTabId) {
+                                sendMessageToTab(tab.id, { action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: noteToFind });
+                            }
+                        });
                     });
-                });
+                }
             }
 
 
@@ -133,9 +159,10 @@ chrome.runtime.onMessage.addListener(
 
             const StoredNotes = await UserLocalStorage.retrieveNoteData();
 
-            // Filter out the note with the matching ID
-            const newArray = StoredNotes.filter((note) => note.hostName === hostName);
-            const updateArray = StoredNotes.filter((note) => note.hostName !== hostName);
+            // Notes to remove: those on this host, but never the global note —
+            // it only carries its creation host and is not really "on" this site.
+            const newArray = StoredNotes.filter((note) => note.hostName === hostName && !UserLocalStorage.isGlobalNote(note));
+            const updateArray = StoredNotes.filter((note) => !(note.hostName === hostName && !UserLocalStorage.isGlobalNote(note)));
 
 
             await UserLocalStorage.setStorage(updateArray)
@@ -183,6 +210,13 @@ chrome.runtime.onMessage.addListener(
                 // Update the position of the found note
                 allNotes[noteIndex].position = finalPosition;
                 await UserLocalStorage.setStorage(allNotes)
+
+                // The global note shares one position everywhere, so mirror the
+                // new position to its instances on other tabs.
+                if (UserLocalStorage.isGlobalNote(allNotes[noteIndex])) {
+                    const senderTabId = sender && sender.tab ? sender.tab.id : null;
+                    broadcastToAllTabs({ action: MESSAGE.SYNC_GLOBAL_STATE, note: allNotes[noteIndex] }, senderTabId);
+                }
             }
 
         }
@@ -201,6 +235,16 @@ chrome.runtime.onMessage.addListener(
             const noteToUpdate = notesArray.find(note => note.id === noteId);
 
             if (!noteToUpdate) {
+                return true;
+            }
+
+            // The global note is a single shared note, so closing it on any one
+            // page removes it everywhere: delete the singleton from storage and
+            // pull its element from every tab (the originating tab already
+            // removed its own element locally).
+            if (UserLocalStorage.isGlobalNote(noteToUpdate)) {
+                await UserLocalStorage.removeNoteById(noteId);
+                broadcastToAllTabs({ action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteId });
                 return true;
             }
 
@@ -257,13 +301,12 @@ chrome.runtime.onMessage.addListener(
                     const activeTab = tabs[0];
 
                     // Decide whether the note should be visible on the active
-                    // tab under the new pin state: it shows on its own exact
-                    // page always, and site-wide (same host) only when pinned.
+                    // tab under the new pin state, using the shared rule (exact
+                    // page always, site-wide only when pinned, global always).
                     let shouldShow = false;
                     try {
                         const activeUrl = new URL(activeTab.url);
-                        shouldShow = note.url === activeUrl.href ||
-                            (Boolean(note.enablePin) && note.hostName === activeUrl.hostname);
+                        shouldShow = UserLocalStorage.shouldShowNoteOnPage(note, activeUrl.href, activeUrl.hostname);
                     } catch (error) {
                         console.warn('Unable to parse active tab URL for pin update.', error);
                     }
@@ -303,6 +346,12 @@ chrome.runtime.onMessage.addListener(
                 allNotes[noteIndex].height = height;
 
                 await UserLocalStorage.setStorage(allNotes);
+
+                // The global note shares one size everywhere.
+                if (UserLocalStorage.isGlobalNote(allNotes[noteIndex])) {
+                    const senderTabId = sender && sender.tab ? sender.tab.id : null;
+                    broadcastToAllTabs({ action: MESSAGE.SYNC_GLOBAL_STATE, note: allNotes[noteIndex] }, senderTabId);
+                }
             }
         }
 
@@ -324,6 +373,16 @@ chrome.runtime.onMessage.addListener(
             });
 
             await UserLocalStorage.setStorage(noteData);
+
+            // The global note is shown on every tab, so mirror the new color to
+            // the other open instances. The originating tab already applied it
+            // locally, so it is skipped. createCardAndUpdate syncs the color
+            // class on the existing note element.
+            const recoloredNote = noteData.find(note => note.id === uniqueId);
+            if (UserLocalStorage.isGlobalNote(recoloredNote)) {
+                const senderTabId = sender && sender.tab ? sender.tab.id : null;
+                broadcastToAllTabs({ action: MESSAGE.UPDATE_CONTENT_IN_CARD, note: recoloredNote }, senderTabId);
+            }
         }
 
         if (request.action === MESSAGE.UPDATE_MINIMIZED) {
@@ -344,6 +403,14 @@ chrome.runtime.onMessage.addListener(
             });
 
             await UserLocalStorage.setStorage(updatedNotesArray);
+
+            // The global note shares one minimized state everywhere, so mirror
+            // minimize/restore to its instances on the other tabs.
+            const minimizedNote = updatedNotesArray.find(note => note.id === noteId);
+            if (UserLocalStorage.isGlobalNote(minimizedNote)) {
+                const senderTabId = sender && sender.tab ? sender.tab.id : null;
+                broadcastToAllTabs({ action: MESSAGE.SYNC_GLOBAL_STATE, note: minimizedNote }, senderTabId);
+            }
         }
         return true
 

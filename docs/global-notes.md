@@ -1,6 +1,6 @@
 # Global Notes — Design
 
-Status: **Proposed** (not yet implemented)
+Status: **Implemented** (build order steps 1–7 complete)
 
 ## Summary
 
@@ -120,9 +120,13 @@ Route **global-note mutations** through it:
 
 - **Live-synced** (pushed to other open instances): content edits, color,
   scope/pin changes, delete.
-- **Persist-only** (saved to storage, applied on the next load rather than
-  pushed live): position, size, minimize. Live-moving a note under the user's
-  cursor on another tab would be jarring and is explicitly out of scope.
+- **Shared state** (position, size, minimized): the global note is a single
+  window that should look the same everywhere, so these are also mirrored to the
+  other tabs (`SYNC_GLOBAL_STATE`) — but only on the settle event (drag end,
+  resize end, minimize/restore toggle), never per animation frame, so it is not
+  jarring. On the origin tab the change is already applied locally, so it is
+  excluded from the broadcast; the applied state is not re-persisted, so it
+  never echoes back into a loop.
 
 The editing model is unchanged from today: the note body already has a
 **debounced `input` handler** that sends `updateNoteContent` after the user
@@ -207,7 +211,6 @@ surfacing and polish.
 
 - Multiple global notes.
 - Real-time collaborative editing / cursor sharing.
-- Per-site position for the global note.
-- Live position/size mirroring across tabs.
+- Per-site position for the global note (position is shared everywhere).
 - Cross-device sync (`chrome.storage.sync`); all data stays in
   `chrome.storage.local` as today.

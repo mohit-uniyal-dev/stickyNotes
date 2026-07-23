@@ -10,6 +10,7 @@ let length = 0
 document.addEventListener('DOMContentLoaded', function () {
 
     const addBtn = document.getElementById('add-note')
+    const addGlobalBtn = document.getElementById('add-global-note')
     const allListContainer = document.getElementById('allNotesList')
     const removeAllBtn = document.querySelector('.removeAll')
     const noOfNotesRow = document.querySelector('.noOfNotes')
@@ -30,10 +31,14 @@ document.addEventListener('DOMContentLoaded', function () {
     title.innerText = getHeading()
     addBtn.disabled = true
     removeAllBtn.disabled = true
+    addGlobalBtn.disabled = true
 
     const setHostScopedActionsEnabled = (isEnabled) => {
         addBtn.disabled = !isEnabled
         removeAllBtn.disabled = !isEnabled
+        // The global note is not host-scoped, but it still needs a supported
+        // active tab to be injected into, so it follows the same readiness gate.
+        addGlobalBtn.disabled = !isEnabled
         isActiveTabReady = isEnabled
     }
 
@@ -92,7 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // get totoal no of page 
     const getTotalPages = async (preloaded) => {
         const allNotes = preloaded || await UserLocalStorage.retrieveNoteData()
-        const filterNotes = allNotes.filter(noteObj => { return noteObj.hostName === hostName })
+        // The global note is surfaced separately (always on top), so it is not
+        // part of this site's paginated note count.
+        const filterNotes = allNotes.filter(noteObj => noteObj.hostName === hostName && !UserLocalStorage.isGlobalNote(noteObj))
         return new Promise((resolve, reject) => {
             const result = Math.ceil(filterNotes.length / notesPerPage);
             resolve(result)
@@ -159,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function getSameHostNameLength(preloaded) {
         const noteArr = preloaded || await UserLocalStorage.retrieveNoteData();
-        return noteArr.filter(noteObj => noteObj.hostName === hostName).length;
+        return noteArr.filter(noteObj => noteObj.hostName === hostName && !UserLocalStorage.isGlobalNote(noteObj)).length;
     }
     // Render a single centered message (loading / empty / error) into the
     // note list in place of note cards.
@@ -182,22 +189,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         noteArr = preloaded || await UserLocalStorage.retrieveNoteData()
-        // based of the start and end value get noteToShow 
-        const filterNote = noteArr.filter(noteObj => { return noteObj.hostName === hostName })
+        // The global note is shown on top of every site's list, separate from
+        // the host-scoped, paginated notes below it.
+        const globalNote = noteArr.find(noteObj => UserLocalStorage.isGlobalNote(noteObj));
+        // based of the start and end value get noteToShow
+        const filterNote = noteArr.filter(noteObj => noteObj.hostName === hostName && !UserLocalStorage.isGlobalNote(noteObj))
         const notesToShow = filterNote.slice(startIndex, endIndex);
         length = filterNote.length
         updateNoteLength(length)
 
-        if (filterNote.length === 0) {
+        if (filterNote.length === 0 && !globalNote) {
             renderListMessage('No notes on this site yet. Click Add Note to create one.');
             return;
         }
 
         notesToShow.forEach(note => {
-            if (hostName === note.hostName) {
-                injectCards(note);
-            }
+            injectCards(note);
         });
+
+        // Prepend last so the global note card sits at the very top on every site.
+        if (globalNote) {
+            injectCards(globalNote);
+        }
 
         tippy('.delete-btn', {
             content: getDeleteDes(),
@@ -240,7 +253,9 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
             var activeTab = tabs[0];
 
-            if (note.url === url || (note.enablePin && note.hostName === hostName)) {
+            // Shared rule: exact page, site-wide when pinned, or global (every
+            // supported site).
+            if (UserLocalStorage.shouldShowNoteOnPage(note, url, hostName)) {
                 sendMessageToTab(activeTab.id, { "message": MESSAGE.INJECT_POPUPS, "noteData": note });
             }
         });
@@ -252,8 +267,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const noteArr = preloaded || await UserLocalStorage.retrieveNoteData()
         if (noteArr.length > 0) {
 
-            noteArr.forEach((element, index) => {
-                if (element.url === url || (element.enablePin && element.hostName === hostName)) {
+            noteArr.forEach((element) => {
+                if (UserLocalStorage.shouldShowNoteOnPage(element, url, hostName)) {
                     injectPopUps(element)
                 }
             });
@@ -324,22 +339,62 @@ document.addEventListener('DOMContentLoaded', function () {
         return icon;
     };
 
-    // inject cards for the user 
+    // A stroked (wireframe) globe for the global note header — built directly
+    // rather than through createPopupIcon, which fills its paths.
+    const createGlobeBadge = () => {
+        const icon = document.createElementNS(SVG_NS, 'svg');
+        icon.setAttribute('xmlns', SVG_NS);
+        icon.setAttribute('width', '15');
+        icon.setAttribute('height', '15');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('class', 'note-header-globe');
+        icon.setAttribute('aria-hidden', 'true');
+
+        const circle = document.createElementNS(SVG_NS, 'circle');
+        circle.setAttribute('cx', '12');
+        circle.setAttribute('cy', '12');
+        circle.setAttribute('r', '9');
+        circle.setAttribute('stroke', 'currentColor');
+        circle.setAttribute('stroke-width', '1.9');
+
+        const meridians = document.createElementNS(SVG_NS, 'path');
+        meridians.setAttribute('d', 'M3 12h18M12 3c2.5 2.4 3.8 5.6 3.8 9S14.5 18.6 12 21c-2.5-2.4-3.8-5.6-3.8-9S9.5 5.4 12 3Z');
+        meridians.setAttribute('stroke', 'currentColor');
+        meridians.setAttribute('stroke-width', '1.7');
+
+        icon.append(circle, meridians);
+        return icon;
+    };
+
+    // inject cards for the user
     const injectCards = (note) => {
+        const isGlobal = UserLocalStorage.isGlobalNote(note);
         const card = document.createElement('div');
-        card.className = 'note-card';
+        card.className = isGlobal ? 'note-card note-card--global' : 'note-card';
         const pinClass = note.enablePin ? 'selected' : 'disable'
         const dateStr = note.date.replace(/\//g, '-');
         const id = note.id
 
-        const colorClass = note.color ? `color-${note.color}` : '';
+        // The global note carries its reserved theme instead of a per-note color.
+        const colorClass = (!isGlobal && note.color) ? `color-${note.color}` : '';
 
         const wrapper = document.createElement('div');
         const header = document.createElement('div');
-        header.className = `note-header ${colorClass}`;
+        header.className = isGlobal ? 'note-header note-header--global' : `note-header ${colorClass}`;
 
         const dateLabel = document.createElement('span');
-        dateLabel.textContent = dateStr;
+        dateLabel.className = 'note-header-label';
+        if (isGlobal) {
+            // A globe badge and "Global note" label make the card identifiable
+            // in the popup list the same way it is on the page.
+            const badge = createGlobeBadge();
+            const globalText = document.createElement('span');
+            globalText.textContent = 'Global note';
+            dateLabel.append(badge, globalText);
+        } else {
+            dateLabel.textContent = dateStr;
+        }
 
         const actionShell = document.createElement('span');
         actionShell.className = 'cursor-pointer';
@@ -350,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function () {
         deleteBtn.id = id;
         deleteBtn.type = 'button';
         deleteBtn.className = 'icon-btn delete-btn';
-        deleteBtn.setAttribute('aria-label', 'Delete note');
+        deleteBtn.setAttribute('aria-label', isGlobal ? 'Delete global note' : 'Delete note');
         deleteBtn.appendChild(createPopupIcon('bi disbale bi-trash', popupTrashIconPaths));
 
         const pinBtn = document.createElement('button');
@@ -360,7 +415,13 @@ document.addEventListener('DOMContentLoaded', function () {
         pinBtn.setAttribute('aria-label', 'Pin note');
         pinBtn.appendChild(createPopupIcon('bi bi-pin-angle', popupPinIconPaths));
 
-        icons.append(deleteBtn, pinBtn);
+        // Pinning is meaningless for a note shown on every site, so the global
+        // card only gets a delete control.
+        if (isGlobal) {
+            icons.append(deleteBtn);
+        } else {
+            icons.append(deleteBtn, pinBtn);
+        }
         actionShell.appendChild(icons);
         header.append(dateLabel, actionShell);
 
@@ -421,11 +482,21 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Send a message to the background script to remove the tab
                             chrome.runtime.sendMessage({ action: MESSAGE.REMOVE_TAB, title: "StickyNotes" });
 
-                            // remove the element from the dom
-                            chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-                                var activeTab = tabs[0];
-                                sendMessageToTab(activeTab.id, { "action": MESSAGE.REMOVE_ELEMENT_FROM_DOM, "id": id });
-                            });
+                            // remove the element from the dom. The global note
+                            // lives on every tab, so its removal must reach all of
+                            // them; a normal note only needs to leave the active tab.
+                            if (isGlobal) {
+                                chrome.tabs.query({}, function (tabs) {
+                                    tabs.forEach((tab) => {
+                                        sendMessageToTab(tab.id, { "action": MESSAGE.REMOVE_ELEMENT_FROM_DOM, "id": id });
+                                    });
+                                });
+                            } else {
+                                chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+                                    var activeTab = tabs[0];
+                                    sendMessageToTab(activeTab.id, { "action": MESSAGE.REMOVE_ELEMENT_FROM_DOM, "id": id });
+                                });
+                            }
 
                             const updateNote = await UserLocalStorage.retrieveNoteData()
                             // Deleting the last note on a page leaves currentPage
@@ -480,7 +551,35 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // hide btn -currently not to use 
+    // Create the global note if it does not exist yet (singleton), otherwise
+    // just re-open it on the active tab. Either way it is injected on the current
+    // page and the popup list refreshes to show it pinned on top.
+    addGlobalBtn.addEventListener('click', () => {
+        if (!isActiveTabReady || !url) {
+            console.warn('Active tab context is not ready. Cannot add the global note.')
+            return
+        }
+
+        chrome.tabs.query({ currentWindow: true, active: true }, async function (tabs) {
+            const activeTab = tabs && tabs[0]
+            if (!activeTab || !activeTab.id) {
+                console.warn('No active tab found for the global note.')
+                return
+            }
+
+            try {
+                const globalNote = await UserLocalStorage.ensureGlobalNote(url)
+                // INJECT_POPUPS is create-or-update, so re-opening an existing
+                // global note never duplicates it on the page.
+                sendMessageToTab(activeTab.id, { message: MESSAGE.INJECT_POPUPS, noteData: globalNote })
+                await refreshNotesView()
+            } catch (error) {
+                console.warn('Unable to create or open the global note.', error)
+            }
+        });
+    });
+
+    // hide btn -currently not to use
     // hideAllBtn.addEventListener('click', async () => {
 
     //     isHidden = !isHidden
@@ -529,7 +628,8 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('triggered !')
         const button = document.getElementById('unPinAll');
         const noteArr = await UserLocalStorage.retrieveNoteData();
-        const filterNote = noteArr.filter(note => note.hostName === hostName);
+        // The global note is not a host pin, so it is never affected by Pin/Unpin All.
+        const filterNote = noteArr.filter(note => note.hostName === hostName && !UserLocalStorage.isGlobalNote(note));
 
         // if state is not false then it is true 
         const shouldUnpin = button.getAttribute('state') !== 'false';

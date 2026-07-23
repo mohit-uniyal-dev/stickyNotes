@@ -144,6 +144,63 @@ svg {
   width: 100%;
 }
 
+/* Add Note + Global Note sit side by side, sharing the row equally. */
+.action-row {
+  display: flex;
+  gap: var(--sn-space-3);
+}
+
+.action-row > #add-note,
+.action-row > .add-global-button {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+/* Global-note action: a secondary/ghost button under Add Note, marked with a
+   globe and the reserved global accent so it reads as a distinct action. */
+.add-global-button {
+  align-items: center;
+  background: transparent;
+  border: 1px dashed var(--sn-global-accent, #6d5efc);
+  border-radius: var(--sn-radius-md);
+  color: var(--sn-global-accent, #6d5efc);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: var(--sn-space-2);
+  justify-content: center;
+  min-height: 36px;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
+  width: 100%;
+}
+
+.add-global-button:hover {
+  background: color-mix(in srgb, var(--sn-global-accent, #6d5efc) 12%, transparent);
+  border-style: solid;
+}
+
+.add-global-button:focus-visible {
+  box-shadow: var(--sn-shadow-ring);
+  outline: none;
+}
+
+.add-global-button:active {
+  transform: translateY(1px);
+}
+
+.add-global-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.add-global-button:disabled:hover {
+  background: transparent;
+  border-style: dashed;
+}
+
 .notes-panel {
   display: grid;
   gap: var(--sn-space-3);
@@ -232,6 +289,32 @@ svg {
 .note-header .icon-btn:hover {
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Global note card: reserved accent border + gradient header + globe badge, so
+   it is identifiable in the popup list the same way it is on the page. */
+.note-card--global {
+  border-color: var(--sn-global-accent);
+  box-shadow: 0 0 0 1px var(--sn-global-accent), var(--sn-shadow-xs);
+}
+
+.note-header--global {
+  background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to));
+  color: #ffffff;
+}
+
+.note-header--global .icon-btn {
+  color: #ffffff;
+}
+
+.note-header-label {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--sn-space-2);
+}
+
+.note-header-globe {
+  flex: 0 0 auto;
 }
 
 .note-content-container {

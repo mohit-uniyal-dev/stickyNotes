@@ -72,6 +72,12 @@ const MinimizedTray = (() => {
             border-radius: 999px;
             background: #0a0b0d;
         }
+        .globe {
+            flex: 0 0 auto;
+            display: inline-flex;
+            width: 15px;
+            height: 15px;
+        }
         .label {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -83,6 +89,21 @@ const MinimizedTray = (() => {
         .color-grey { background: #4b5563; }
         .color-purple { background: #7c3aed; }
         .color-pink { background: #db2777; }
+        /* Global note pill: the same reserved gradient + globe used on the note
+           itself, so it stays identifiable while minimized. */
+        .pill--global {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.34);
+        }
+        .pill--global:hover {
+            box-shadow: 0 10px 26px rgba(79, 70, 229, 0.42);
+        }
+        .pill--global:focus-visible {
+            box-shadow: 0 0 0 3px rgba(139, 125, 255, 0.5);
+        }
+        .pill--global .globe { color: #ffffff; }
         @media (prefers-color-scheme: dark) {
             .pill {
                 background: #141518;
@@ -92,6 +113,13 @@ const MinimizedTray = (() => {
             }
             .pill:focus-visible { box-shadow: 0 0 0 3px rgba(245, 246, 247, 0.24); }
             .dot { background: #f5f6f7; }
+            /* Keep the global pill on its reserved gradient in dark mode too. */
+            .pill--global {
+                background: linear-gradient(135deg, #4338ca, #6d28d9);
+                color: #ffffff;
+                border-color: transparent;
+            }
+            .pill--global .globe { color: #ffffff; }
         }
     `;
 
@@ -126,26 +154,60 @@ const MinimizedTray = (() => {
         return firstLine.length > 26 ? `${firstLine.slice(0, 26)}…` : firstLine;
     };
 
-    // Add a pill for a note ({ id, content?, color? }) without persisting.
+    // A stroked globe marker for the global note's pill.
+    const createGlobe = () => {
+        const svgNs = 'http://www.w3.org/2000/svg';
+        const icon = document.createElementNS(svgNs, 'svg');
+        icon.setAttribute('class', 'globe');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('aria-hidden', 'true');
+
+        const circle = document.createElementNS(svgNs, 'circle');
+        circle.setAttribute('cx', '12');
+        circle.setAttribute('cy', '12');
+        circle.setAttribute('r', '9');
+        circle.setAttribute('stroke', 'currentColor');
+        circle.setAttribute('stroke-width', '1.9');
+
+        const meridians = document.createElementNS(svgNs, 'path');
+        meridians.setAttribute('d', 'M3 12h18M12 3c2.5 2.4 3.8 5.6 3.8 9S14.5 18.6 12 21c-2.5-2.4-3.8-5.6-3.8-9S9.5 5.4 12 3Z');
+        meridians.setAttribute('stroke', 'currentColor');
+        meridians.setAttribute('stroke-width', '1.7');
+
+        icon.append(circle, meridians);
+        return icon;
+    };
+
+    // Add a pill for a note ({ id, content?, color?, scope? }) without persisting.
     const addPill = (note) => {
         ensureTray();
         if (listEl.querySelector(`[data-note-id="${note.id}"]`)) return;
 
+        const isGlobal = note.scope === 'global';
+
         const pill = document.createElement('button');
         pill.type = 'button';
-        pill.className = 'pill';
+        pill.className = isGlobal ? 'pill pill--global' : 'pill';
         pill.setAttribute('data-note-id', note.id);
-        pill.setAttribute('aria-label', `Restore note: ${previewText(note.content)}`);
-
-        const dot = document.createElement('span');
-        dot.className = 'dot';
-        if (note.color) dot.classList.add(`color-${note.color}`);
+        pill.setAttribute('aria-label', isGlobal
+            ? `Restore global note: ${previewText(note.content)}`
+            : `Restore note: ${previewText(note.content)}`);
 
         const label = document.createElement('span');
         label.className = 'label';
         label.textContent = previewText(note.content);
 
-        pill.append(dot, label);
+        if (isGlobal) {
+            // The global note carries a globe marker instead of a color dot.
+            pill.append(createGlobe(), label);
+        } else {
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            if (note.color) dot.classList.add(`color-${note.color}`);
+            pill.append(dot, label);
+        }
+
         pill.addEventListener('click', () => restore(note.id));
         listEl.appendChild(pill);
     };
@@ -181,5 +243,21 @@ const MinimizedTray = (() => {
         chrome.runtime.sendMessage({ action: MESSAGE.UPDATE_MINIMIZED, id: id, minimized: false });
     };
 
-    return { minimize, restore, removePill };
+    // Apply a minimized state that arrived from another tab (the global note's
+    // shared state). Does NOT persist or message the background, so it never
+    // echoes back into a sync loop. No-op if the note has no window on this tab.
+    const syncMinimized = (note) => {
+        const host = SimpleShadowDOM.getHostById(note.id);
+        if (!host) return;
+
+        if (note.minimized) {
+            minimize(note);
+        } else {
+            delete host.dataset.snMinimized;
+            host.style.display = '';
+            removePill(note.id);
+        }
+    };
+
+    return { minimize, restore, removePill, syncMinimized };
 })();

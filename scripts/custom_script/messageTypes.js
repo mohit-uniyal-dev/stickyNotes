@@ -36,6 +36,8 @@ const MESSAGE = Object.freeze({
     // Content DOM commands (`action`)
     REMOVE_ELEMENT_FROM_DOM: 'removeElementFromDom',
     UPDATE_CONTENT_IN_CARD: 'updateContentInCard',
+    // Sync the global note's shared position/size/minimized state to other tabs.
+    SYNC_GLOBAL_STATE: 'syncGlobalState',
 
     // Content-script UI commands (`message`)
     START: 'start',

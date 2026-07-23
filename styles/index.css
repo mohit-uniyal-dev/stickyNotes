@@ -434,6 +434,35 @@ svg {
   color: #0a0b0d !important;
 }
 
+/* --- Global note: reserved identity on the All Notes page --------------- */
+.noteContainer--global {
+  border-color: var(--sn-global-accent) !important;
+}
+
+.noteContainer--global.select {
+  border-color: var(--sn-global-accent) !important;
+}
+
+.global-host-label {
+  align-items: center;
+  color: var(--sn-global-accent);
+  display: inline-flex;
+  gap: 8px;
+}
+
+.global-host-globe {
+  flex: 0 0 auto;
+}
+
+.card--global .heading {
+  background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to)) !important;
+  color: #ffffff !important;
+}
+
+.card--global .heading .deleteNoteBtn {
+  color: #ffffff !important;
+}
+
 .note-card-meta {
   align-items: center;
   display: flex;

@@ -19,6 +19,11 @@
     --sn-note-pink: #db2777;
     --sn-note-default: #0a0b0d;
     --sn-note-title-text: #ffffff;
+    /* Reserved identity for the single global note (not part of the note color
+       palette), so it reads as "shown on every site" at a glance. */
+    --sn-global-accent: #6d5efc;
+    --sn-global-title-from: #4f46e5;
+    --sn-global-title-to: #7c3aed;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,6 +38,9 @@
         --sn-primary: #f5f6f7;
         --sn-note-default: #24262c;
         --sn-note-title-text: #f5f6f7;
+        --sn-global-accent: #8b7dff;
+        --sn-global-title-from: #4338ca;
+        --sn-global-title-to: #6d28d9;
     }
 }
 
@@ -301,4 +309,38 @@ svg {
 
 .note-title.color-yellow {
     color: #0a0b0d;
+}
+
+/* --- Global note: reserved identity ------------------------------------- */
+/* One shared note shown on every site. A reserved gradient header, accent
+   border, and globe badge make it identifiable and distinct from the normal
+   color palette. */
+.note-container.scope-global {
+    border-color: var(--sn-global-accent);
+    box-shadow: var(--sn-shadow-soft), 0 0 0 1px var(--sn-global-accent);
+}
+
+.scope-global .note-title {
+    background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to));
+    color: #ffffff;
+    /* Columns: globe badge, heading, controls (the add button is hidden). */
+    grid-template-columns: auto 1fr auto;
+}
+
+.scope-global .global-badge {
+    align-items: center;
+    color: #ffffff;
+    display: inline-flex;
+    justify-content: center;
+    opacity: 0.95;
+}
+
+/* The reserved theme owns the color, so the per-note color controls are hidden
+   for the global note. Pinning is meaningless for a note shown everywhere, and
+   the add button (which creates a normal page note) is confusing on it. */
+.scope-global .add-btn,
+.scope-global .options,
+.scope-global .pin,
+.scope-global .color-palette {
+    display: none !important;
 }

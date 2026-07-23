@@ -25,6 +25,8 @@ Do this on a clean profile / fresh load, in a normal **https** tab.
 ### Install
 - [ ] On first install, the **welcome page** opens; it renders correctly in
       light and dark, and "Open the All Notes page" works.
+- [ ] On a version update, the welcome page opens scrolled to **What's new**
+      (the section shows the current `v` and renders in light and dark).
 
 ### Popup
 - [ ] On a site with no notes: popup shows the "No notes on this site yet" empty
@@ -44,6 +46,25 @@ Do this on a clean profile / fresh load, in a normal **https** tab.
       clicking the pill restores it to its place.
 - [ ] Clicking the title-bar buttons does not start a drag.
 - [ ] Close (X): removes an empty note; unpins a note that has content.
+
+### Global note
+- [ ] Popup **Global Note** → a globe-marked, accent-themed note appears; it has
+      no add/color/pin controls; the popup lists it pinned at the top.
+- [ ] Open a second, different site → the same global note is already there.
+- [ ] Type on one site, switch to the other tab → the edit shows up (after the
+      short debounce; no live per-keystroke sync expected).
+- [ ] Drag / resize it on one site → the other open instance moves/resizes to
+      match; reload either site → it keeps that position/size.
+- [ ] Minimize it on one site → it minimizes on the other open instance too (a
+      globe-marked gradient pill in the tray); restoring on one restores both.
+- [ ] It does **not** appear on unsupported pages (chrome://, Web Store, file://).
+- [ ] Reload a site → the global note comes back in place.
+- [ ] Delete it (popup card or its All Notes card) → it disappears from every
+      open tab and from the popup/All Notes list.
+- [ ] Close (X) the global note on one page → it is removed from **every** open
+      tab (there is only one shared note), and does not return on reload.
+- [ ] Host **Remove All** / **Pin-Unpin All** do **not** delete the shared
+      global note.
 
 ### Restore on reload
 - [ ] Pin a note, reload the page → it comes back in place.

@@ -52,6 +52,12 @@
   --sn-note-pink: #db2777;
   --sn-note-default: #0a0b0d;
   --sn-note-title-text: #ffffff;
+
+  /* Reserved identity for the single global note (kept out of the note color
+     palette so it always reads as "shown everywhere"). */
+  --sn-global-accent: #6d5efc;
+  --sn-global-title-from: #4f46e5;
+  --sn-global-title-to: #7c3aed;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -86,6 +92,10 @@
 
     --sn-note-default: #24262c;
     --sn-note-title-text: #f5f6f7;
+
+    --sn-global-accent: #8b7dff;
+    --sn-global-title-from: #4338ca;
+    --sn-global-title-to: #6d28d9;
   }
 }
 
@@ -121,6 +131,10 @@
 
   --sn-note-default: #0a0b0d;
   --sn-note-title-text: #ffffff;
+
+  --sn-global-accent: #6d5efc;
+  --sn-global-title-from: #4f46e5;
+  --sn-global-title-to: #7c3aed;
 }
 
 [data-theme="dark"] {
@@ -155,6 +169,10 @@
 
   --sn-note-default: #24262c;
   --sn-note-title-text: #f5f6f7;
+
+  --sn-global-accent: #8b7dff;
+  --sn-global-title-from: #4338ca;
+  --sn-global-title-to: #6d28d9;
 }
 
 html,

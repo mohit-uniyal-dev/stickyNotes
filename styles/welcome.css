@@ -176,6 +176,67 @@ body {
   margin: 0;
 }
 
+/* What's new — tied to the global-note accent so it matches the feature. */
+.version-badge {
+  background: color-mix(in srgb, var(--sn-global-accent) 16%, transparent);
+  border-radius: 999px;
+  color: var(--sn-global-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-left: 6px;
+  padding: 2px 9px;
+  text-transform: none;
+  vertical-align: middle;
+}
+
+.whatsnew {
+  display: grid;
+  gap: var(--sn-space-4);
+}
+
+.whatsnew-card {
+  align-items: center;
+  background: var(--sn-surface);
+  border: 1px solid var(--sn-global-accent);
+  border-radius: var(--sn-radius-lg);
+  box-shadow: var(--sn-shadow-xs);
+  display: flex;
+  gap: var(--sn-space-4);
+  padding: var(--sn-space-5);
+}
+
+.whatsnew-icon {
+  align-items: center;
+  background: linear-gradient(135deg, var(--sn-global-title-from), var(--sn-global-title-to));
+  border-radius: var(--sn-radius-md);
+  color: #ffffff;
+  display: flex;
+  flex: 0 0 auto;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.whatsnew-icon svg {
+  height: 24px;
+  width: 24px;
+}
+
+.whatsnew-body h3 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+
+.whatsnew-body p {
+  color: var(--sn-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .foot {
   display: grid;
   gap: var(--sn-space-3);

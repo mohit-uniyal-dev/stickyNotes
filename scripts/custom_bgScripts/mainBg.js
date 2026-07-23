@@ -238,13 +238,14 @@ chrome.runtime.onMessage.addListener(
                 return true;
             }
 
-            // The global note is a single shared note, so closing it on any one
-            // page removes it everywhere: delete the singleton from storage and
-            // pull its element from every tab (the originating tab already
-            // removed its own element locally).
+            // Closing (X) the global note behaves like closing a normal note:
+            // it only dismisses the note from the current tab's view (the
+            // content script already removed its element there). The shared note
+            // is not deleted or changed in storage, so it stays global and
+            // reappears on reload — just like a normal note returns on its page.
+            // Permanent removal is the explicit delete (popup card / All Notes),
+            // which removes it from every tab.
             if (UserLocalStorage.isGlobalNote(noteToUpdate)) {
-                await UserLocalStorage.removeNoteById(noteId);
-                broadcastToAllTabs({ action: MESSAGE.REMOVE_ELEMENT_FROM_DOM, id: noteId });
                 return true;
             }
 

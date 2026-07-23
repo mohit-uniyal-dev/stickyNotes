@@ -59,10 +59,10 @@ Do this on a clean profile / fresh load, in a normal **https** tab.
       globe-marked gradient pill in the tray); restoring on one restores both.
 - [ ] It does **not** appear on unsupported pages (chrome://, Web Store, file://).
 - [ ] Reload a site → the global note comes back in place.
+- [ ] Close (X) the global note → it is dismissed from **that page's** view only
+      (like a normal note), and returns on reload; other tabs are unaffected.
 - [ ] Delete it (popup card or its All Notes card) → it disappears from every
-      open tab and from the popup/All Notes list.
-- [ ] Close (X) the global note on one page → it is removed from **every** open
-      tab (there is only one shared note), and does not return on reload.
+      open tab and from the popup/All Notes list, and does not return on reload.
 - [ ] Host **Remove All** / **Pin-Unpin All** do **not** delete the shared
       global note.
 

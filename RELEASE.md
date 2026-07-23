@@ -37,6 +37,9 @@ Do this on a clean profile / fresh load, in a normal **https** tab.
       hides again.
 
 ### Injected note (on the page)
+- [ ] An empty note shows helpful placeholder text; an empty **global** note
+      shows its own text explaining it is one shared note shown on every site.
+- [ ] Hovering each toolbar button shows a tooltip explaining it.
 - [ ] Typing saves; the caret does **not** jump to the start while typing.
 - [ ] Drag by the title bar moves it; it **cannot** be dragged off-screen.
 - [ ] Resize works from each of the four edges.

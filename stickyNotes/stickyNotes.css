@@ -52,14 +52,16 @@ svg {
 
 .brand-mark {
   align-items: center;
-  background: var(--sn-primary-soft);
-  border: 1px solid var(--sn-border);
-  border-radius: var(--sn-radius-md);
-  color: var(--sn-primary);
   display: flex;
   height: 36px;
   justify-content: center;
   width: 36px;
+}
+
+.brand-mark img {
+  display: block;
+  height: 30px;
+  width: 30px;
 }
 
 .title {

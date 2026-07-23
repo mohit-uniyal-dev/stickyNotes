@@ -191,7 +191,18 @@ pre {
 
 .textarea:empty::before {
     color: var(--sn-text-muted);
-    content: "Write a note...";
+    content: "Write your note here…\APinned notes stay shown on this page;\A unpin (or close) to hide.";
+    display: block;
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: none;
+    white-space: pre-line;
+}
+
+/* The global note explains its special nature while empty: one shared note,
+   shown everywhere when pinned, with edits synced across sites. */
+.scope-global .textarea:empty::before {
+    content: "This is your Global note 🌐\A\AThere's only one, and — while pinned — it shows on every site. Your edits, color, position and size sync everywhere.\A\AUnpin (or close) to hide it. Start typing…";
 }
 
 .color-palette {

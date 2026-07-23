@@ -204,7 +204,7 @@ The main classes and functions are:
 - `makeResizable(element, size)`: applies saved dimensions and stores new dimensions after resizing.
 - `makeDraggable(element, handle, id, position)` (defined in `scripts/content_script/draggable.js`): applies saved position and stores new position after dragging.
 
-The injected note UI is a themed Shadow DOM card with a header toolbar, add/color/pin/minimize/close controls, color palette, editable body, empty placeholder, resize handles, persisted position, and persisted size.
+The injected note UI is a themed Shadow DOM card with a header toolbar, add/color/pin/minimize/close controls (each with a `title` hover tooltip explaining it), color palette, editable body, an empty-state placeholder (a distinct one on the global note explaining that it is a single shared note shown on every site while pinned), resize handles, persisted position, and persisted size.
 
 `scripts/content_script/minimizedTray.js` provides `MinimizedTray`, a shared Shadow DOM strip anchored to the bottom-right of the viewport. Minimizing a note (`minimize-btn`) hides its floating window and adds one compact pill (color dot plus a short content preview) to the tray; clicking a pill restores the note to its place. The tray is created lazily and removed when the last note is restored, and `createPopup` renders a note that loads with `minimized: true` straight into the tray. Minimized state is persisted through the background `updateMinimized` message.
 

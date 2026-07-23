@@ -8,6 +8,10 @@ class SimpleShadowDOM {
         const colorClass = (!isGlobal && note.color) ? `color-${note.color}` : '';
         const scopeClass = isGlobal ? 'scope-global' : '';
         const headingLabel = isGlobal ? 'Global note' : 'Stick it';
+        // Hover hints (native tooltips) explaining each control.
+        const pinTitle = isGlobal
+            ? 'Pin — show on every site. Unpin to hide it.'
+            : 'Pin — keep this note shown. Unpin to hide it.';
         const globeBadge = isGlobal ? `
                 <span class="global-badge" aria-hidden="true">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,7 +23,7 @@ class SimpleShadowDOM {
         return `
         <div uniqueId="${id}" class="note-container ${scopeClass}">
             <div class="note-title ${colorClass}">
-                <button class="note-action add-btn" type="button" aria-label="Add note">
+                <button class="note-action add-btn" type="button" aria-label="Add note" title="Add another note on this page">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
@@ -27,22 +31,22 @@ class SimpleShadowDOM {
                 ${globeBadge}
                 <span class="heading">${headingLabel}</span>
                 <div class="dropdown">
-                    <button id="options" class="note-action options" type="button" aria-label="Note color">
+                    <button id="options" class="note-action options" type="button" aria-label="Note color" title="Change note color">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 6.5h.01M12 12h.01M12 17.5h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
                         </svg>
                     </button>
-                    <button pinId="${id}" class="note-action bg-transparent ${pinClass} pin" type="button" aria-label="Pin note">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                            <path d="m14 4 6 6-3 1-4 4v4l-2 2-3.5-3.5L4 14l2-2h4l4-4 1-4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    <button pinId="${id}" class="note-action bg-transparent ${pinClass} pin" type="button" aria-label="Pin note" title="${pinTitle}">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146m.122 2.112v-.002zm0-.002v.002a.5.5 0 0 1-.122.51L6.293 6.878a.5.5 0 0 1-.511.12H5.78l-.014-.004a5 5 0 0 0-.288-.076 5 5 0 0 0-.765-.116c-.422-.028-.836.008-1.175.15l5.51 5.509c.141-.34.177-.753.149-1.175a5 5 0 0 0-.192-1.054l-.004-.013v-.001a.5.5 0 0 1 .12-.512l3.536-3.535a.5.5 0 0 1 .532-.115l.096.022c.087.017.208.034.344.034q.172.002.343-.04L9.927 2.028q-.042.172-.04.343a1.8 1.8 0 0 0 .062.46z"/>
                         </svg>
                     </button>
-                    <button class="note-action minimize-btn" type="button" aria-label="Minimize note">
+                    <button class="note-action minimize-btn" type="button" aria-label="Minimize note" title="Minimize into the tray">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 17h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                     </button>
-                    <button uniqueId="${id}" class="note-action close-btn" type="button" aria-label="Close note">
+                    <button uniqueId="${id}" class="note-action close-btn" type="button" aria-label="Close note" title="Close — hides this note">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
